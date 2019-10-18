@@ -6,7 +6,9 @@
 
 ![](./demo.jpeg)
 
-线上演示 [DEMO](http://www.baidu.com)
+简单线上演示 [DEMO](https://holanlan.github.io/b2wordcloud/)
+
+渐变+阴影+形状演示 [DEMO](https://holanlan.github.io/b2wordcloud/shape.html)
 
 ## Installtion
 - 通过script引入
