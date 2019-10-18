@@ -80,6 +80,9 @@ var wordCloud = new B2wordCloud(document.getElementById("chart"), {
 - resize()
 
 当容器大小变化时，可调用此方法重新绘制
+
 e.g: 
+
 var wordCloud = new B2wordCloud(element, options)
+
 wordcloud.resize()
