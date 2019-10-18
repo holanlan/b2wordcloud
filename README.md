@@ -81,7 +81,3 @@ var wordCloud = new B2wordCloud(document.getElementById("chart"), {
 e.g: 
 var wordCloud = new B2wordCloud(element, options)
 wordcloud.resize()
-
-
-# Licence
-MIT

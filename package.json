@@ -11,6 +11,10 @@
   "keywords": [
     "wordcloud"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holanlan/b2wordcloud.git"
+  },
   "author": "holan",
   "license": "ISC",
   "devDependencies": {
