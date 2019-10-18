@@ -1,5 +1,7 @@
 # b2wordcloud
 
+[![NPM](https://nodei.co/npm/b2wordcloud.png)](https://nodei.co/npm/b2wordcloud/)
+
 基于[wordcloud2.js](https://github.com/timdream/wordcloud2.js)生成2D词云图
 
 扩展特性若干，如tooltip，渐变色，阴影
