@@ -4,9 +4,9 @@
 	else if(typeof define === 'function' && define.amd)
 		define([], factory);
 	else if(typeof exports === 'object')
-		exports["B2wordCloud"] = factory();
+		exports["B2wordcloud"] = factory();
 	else
-		root["B2wordCloud"] = factory();
+		root["B2wordcloud"] = factory();
 })(this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -73,9 +73,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return obj1;
 	}
 	
-	var B2wordCloud = exports.B2wordCloud = function () {
-	    function B2wordCloud(element, options) {
-	        _classCallCheck(this, B2wordCloud);
+	var B2wordcloud = exports.B2wordcloud = function () {
+	    function B2wordcloud(element, options) {
+	        _classCallCheck(this, B2wordcloud);
 	
 	        this._wrapper = element;
 	        this._container = null;
@@ -93,7 +93,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._init();
 	    }
 	
-	    _createClass(B2wordCloud, [{
+	    _createClass(B2wordcloud, [{
 	        key: '_init',
 	        value: function _init() {
 	            this._initContainer();
@@ -313,10 +313,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	    }]);
 	
-	    return B2wordCloud;
+	    return B2wordcloud;
 	}();
 	
-	module.exports = B2wordCloud;
+	module.exports = B2wordcloud;
 
 /***/ }),
 /* 1 */
@@ -1525,4 +1525,4 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ])
 });
 ;
-//# sourceMappingURL=b2wordCloud.js.map
+//# sourceMappingURL=b2wordcloud.js.map

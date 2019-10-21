@@ -8,7 +8,7 @@ function deepMerge(obj1, obj2) {
     }
     return obj1;
 }
-export class B2wordCloud {
+export class B2wordcloud {
     constructor(element, options) {
         this._wrapper = element
         this._container = null
@@ -230,4 +230,4 @@ export class B2wordCloud {
 }
 
 
-module.exports = B2wordCloud
+module.exports = B2wordcloud
