@@ -727,29 +727,35 @@ if (!window.clearImmediate) {
       } else {
         color = settings.color;
       }
-      // 支持阴影
-      if (elements[0].getContext) {
-        ctx = elements[0].getContext('2d');
-        gradient = ctx.createLinearGradient(0, 0, 0, 40);
-        ctx.shadowColor = options.shadowColor
-        ctx.shadowOffsetX = options.shadowOffsetX;
-        ctx.shadowOffsetY = options.shadowOffsetY;
-        ctx.shadowBlur = options.shadowBlur;
-      }
-      // 支持渐变色
+
       if (Object.prototype.toString.call(color) === '[object Array]') {
         var itemColor = color[index%color.length], ctx, gradient;
-        if (elements[0].getContext) {// 先判断是不是canvas渲染
-          if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-            for (var i = 0; i < itemColor.length; i++) {
-              gradient.addColorStop(i/itemColor.length, itemColor[i]);
+        elements.forEach(item => {
+          if (item.getContext) {
+            ctx = item.getContext('2d');
+            // 支持阴影
+            gradient = ctx.createLinearGradient(0, 0, 0, 40);
+            ctx.shadowColor = options.shadowColor
+            ctx.shadowOffsetX = options.shadowOffsetX;
+            ctx.shadowOffsetY = options.shadowOffsetY;
+            ctx.shadowBlur = options.shadowBlur;
+
+            // 支持渐变色 
+            if (Object.prototype.toString.call(itemColor) === '[object Array]') {
+              for (var i = 0; i < itemColor.length; i++) {
+                gradient.addColorStop(i/itemColor.length, itemColor[i]);
+              }
+              color = gradient
+            } else {
+              color = itemColor  
             }
-            itemColor = gradient
+          } else {
+            color = itemColor
           }
-        }
-        
-        color = itemColor  
+        })
       }
+
+      
 
       // get fontWeight that will be used to set ctx.font and font style rule
       var fontWeight;
@@ -840,7 +846,8 @@ if (!window.clearImmediate) {
             'transformOrigin': '50% 40%',
             'webkitTransformOrigin': '50% 40%',
             'msTransformOrigin': '50% 40%',
-            'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor //增加文字阴影
+            'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
+            'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
           };
           if (color) {
             if (Object.prototype.toString.call(color) === '[object Array]') {// DOM 渲染时增加渐变色
@@ -1133,10 +1140,8 @@ if (!window.clearImmediate) {
 
         imageData = bctx = bgPixel = undefined;
       }
-
       // fill the infoGrid with empty state if we need it
       if (settings.hover || settings.click) {
-
         interactive = true;
 
         /* fill the grid with empty state */
@@ -1144,31 +1149,29 @@ if (!window.clearImmediate) {
         while (gx--) {
           infoGrid[gx] = [];
         }
-
-        if (settings.hover) {
-          canvas.addEventListener('mousemove', wordcloudhover);
-        }
-
         var touchend = function (e) {
           e.preventDefault();
         };
-
-        if (settings.click) {
-          canvas.addEventListener('click', wordcloudclick);
-          canvas.addEventListener('touchstart', wordcloudclick);
-          canvas.addEventListener('touchend', touchend);
-          canvas.style.webkitTapHighlightColor = 'rgba(0, 0, 0, 0)';
-        }
-
-        canvas.addEventListener('wordcloudstart', function stopInteraction() {
-          canvas.removeEventListener('wordcloudstart', stopInteraction);
-
-          canvas.removeEventListener('mousemove', wordcloudhover);
-          canvas.removeEventListener('click', wordcloudclick);
-          canvas.removeEventListener('touchstart', wordcloudclick);
-          canvas.removeEventListener('touchend', touchend);
-          hovered = undefined;
-        });
+        elements.forEach(function(item) {
+          if (settings.hover) {
+            item.addEventListener('mousemove', wordcloudhover);
+          }
+          if (settings.click) {
+            item.addEventListener('click', wordcloudclick);
+            item.addEventListener('touchstart', wordcloudclick);
+            item.addEventListener('touchend', touchend);
+            item.style.webkitTapHighlightColor = 'rgba(0, 0, 0, 0)';
+          }
+  
+          item.addEventListener('wordcloudstart', function stopInteraction() {
+            item.removeEventListener('wordcloudstart', stopInteraction);
+            item.removeEventListener('mousemove', wordcloudhover);
+            item.removeEventListener('click', wordcloudclick);
+            item.removeEventListener('touchstart', wordcloudclick);
+            item.removeEventListener('touchend', touchend);
+            hovered = undefined;
+          });
+        })
       }
 
       i = 0;

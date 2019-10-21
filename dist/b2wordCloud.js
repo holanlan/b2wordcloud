@@ -89,6 +89,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }, options);
 	        this._wordcloud2 = null;
 	        this._maskCanvas = null;
+	        this._tempCanvas = null;
 	        this._init();
 	    }
 	
@@ -105,13 +106,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._container = document.createElement('div');
 	                this._container.style.width = '100%';
 	                this._container.style.height = '100%';
+	                this._createTempCanvas();
 	            } else if (this._options.renderer === 'canvas') {
 	                this._container = document.createElement('canvas');
-	            }
-	            if (this._options.renderer === 'canvas') {
 	                this._setCanvasSize();
 	            }
 	            this._wrapper.appendChild(this._container);
+	        }
+	    }, {
+	        key: '_createTempCanvas',
+	        value: function _createTempCanvas() {
+	            this._tempCanvas = document.createElement('canvas');
+	            this._setCanvasSize(this._tempCanvas);
 	        }
 	    }, {
 	        key: '_initTooltip',
@@ -137,10 +143,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_setCanvasSize',
 	        value: function _setCanvasSize() {
+	            var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._container;
+	
 	            var width = this._wrapper.clientWidth;
 	            var height = this._wrapper.clientHeight;
-	            this._container.width = width;
-	            this._container.height = height;
+	            target.width = width;
+	            target.height = height;
 	        }
 	    }, {
 	        key: '_setOptions',
@@ -170,8 +178,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        offsetY = tooltipHeight + (_this._options.renderer === 'div' ? 15 : 10);
 	                        offsetX = tooltipWidth / 2;
 	                        _this._tooltip.style.position = 'absolute';
-	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.y - offsetY : event.y - offsetY) + 'px';
-	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.x - offsetX : event.x - offsetX) + 'px';
+	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px';
+	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px';
 	                        _this._tooltip.innerHTML = html;
 	                    } else {
 	                        _this._tooltip.style.display = 'none';
@@ -223,7 +231,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _render() {
 	            if (this._maskCanvas) {
 	                this._options.clearCanvas = false;
-	
 	                /* Determine bgPixel by creating
 	                    another canvas and fill the specified background color. */
 	                var bctx = document.createElement('canvas').getContext('2d');
@@ -255,12 +262,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        newImageData.data[i + 3] = bgPixel[3] ? bgPixel[3] - 1 : 0;
 	                    }
 	                }
-	
 	                ctx.putImageData(newImageData, 0, 0);
-	                ctx = this._container.getContext('2d');
+	                var _ctx = this._tempCanvas ? this._tempCanvas : this._container;
+	                ctx = _ctx.getContext('2d');
 	                ctx.drawImage(maskCanvasScaled, 0, 0);
 	            }
-	            this._wordcloud2 = WordCloud(this._container, this._options);
+	            this._wordcloud2 = WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options);
 	        }
 	    }, {
 	        key: '_fixWeightFactor',
@@ -299,6 +306,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function resize() {
 	            if (this._options.renderer === 'canvas') {
 	                this._setCanvasSize();
+	            } else if (this._options.renderer === 'div') {
+	                this._container.textContent = '';
 	            }
 	            this._render();
 	        }
@@ -1001,31 +1010,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	          color = settings.color;
 	        }
-	        // 支持阴影
-	        if (elements[0].getContext) {
-	          ctx = elements[0].getContext('2d');
-	          gradient = ctx.createLinearGradient(0, 0, 0, 40);
-	          ctx.shadowColor = options.shadowColor;
-	          ctx.shadowOffsetX = options.shadowOffsetX;
-	          ctx.shadowOffsetY = options.shadowOffsetY;
-	          ctx.shadowBlur = options.shadowBlur;
-	        }
-	        // 支持渐变色
+	
 	        if (Object.prototype.toString.call(color) === '[object Array]') {
 	          var itemColor = color[index % color.length],
 	              ctx,
 	              gradient;
-	          if (elements[0].getContext) {
-	            // 先判断是不是canvas渲染
-	            if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-	              for (var i = 0; i < itemColor.length; i++) {
-	                gradient.addColorStop(i / itemColor.length, itemColor[i]);
-	              }
-	              itemColor = gradient;
-	            }
-	          }
+	          elements.forEach(function (item) {
+	            if (item.getContext) {
+	              ctx = item.getContext('2d');
+	              // 支持阴影
+	              gradient = ctx.createLinearGradient(0, 0, 0, 40);
+	              ctx.shadowColor = options.shadowColor;
+	              ctx.shadowOffsetX = options.shadowOffsetX;
+	              ctx.shadowOffsetY = options.shadowOffsetY;
+	              ctx.shadowBlur = options.shadowBlur;
 	
-	          color = itemColor;
+	              // 支持渐变色 
+	              if (Object.prototype.toString.call(itemColor) === '[object Array]') {
+	                for (var i = 0; i < itemColor.length; i++) {
+	                  gradient.addColorStop(i / itemColor.length, itemColor[i]);
+	                }
+	                color = gradient;
+	              } else {
+	                color = itemColor;
+	              }
+	            } else {
+	              color = itemColor;
+	            }
+	          });
 	        }
 	
 	        // get fontWeight that will be used to set ctx.font and font style rule
@@ -1111,7 +1123,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'transformOrigin': '50% 40%',
 	              'webkitTransformOrigin': '50% 40%',
 	              'msTransformOrigin': '50% 40%',
-	              'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor //增加文字阴影
+	              'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
+	              'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
 	            };
 	            if (color) {
 	              if (Object.prototype.toString.call(color) === '[object Array]') {
@@ -1399,10 +1412,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          imageData = bctx = bgPixel = undefined;
 	        }
-	
 	        // fill the infoGrid with empty state if we need it
 	        if (settings.hover || settings.click) {
-	
 	          interactive = true;
 	
 	          /* fill the grid with empty state */
@@ -1410,30 +1421,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	          while (gx--) {
 	            infoGrid[gx] = [];
 	          }
-	
-	          if (settings.hover) {
-	            canvas.addEventListener('mousemove', wordcloudhover);
-	          }
-	
 	          var touchend = function touchend(e) {
 	            e.preventDefault();
 	          };
+	          elements.forEach(function (item) {
+	            if (settings.hover) {
+	              item.addEventListener('mousemove', wordcloudhover);
+	            }
+	            if (settings.click) {
+	              item.addEventListener('click', wordcloudclick);
+	              item.addEventListener('touchstart', wordcloudclick);
+	              item.addEventListener('touchend', touchend);
+	              item.style.webkitTapHighlightColor = 'rgba(0, 0, 0, 0)';
+	            }
 	
-	          if (settings.click) {
-	            canvas.addEventListener('click', wordcloudclick);
-	            canvas.addEventListener('touchstart', wordcloudclick);
-	            canvas.addEventListener('touchend', touchend);
-	            canvas.style.webkitTapHighlightColor = 'rgba(0, 0, 0, 0)';
-	          }
-	
-	          canvas.addEventListener('wordcloudstart', function stopInteraction() {
-	            canvas.removeEventListener('wordcloudstart', stopInteraction);
-	
-	            canvas.removeEventListener('mousemove', wordcloudhover);
-	            canvas.removeEventListener('click', wordcloudclick);
-	            canvas.removeEventListener('touchstart', wordcloudclick);
-	            canvas.removeEventListener('touchend', touchend);
-	            hovered = undefined;
+	            item.addEventListener('wordcloudstart', function stopInteraction() {
+	              item.removeEventListener('wordcloudstart', stopInteraction);
+	              item.removeEventListener('mousemove', wordcloudhover);
+	              item.removeEventListener('click', wordcloudclick);
+	              item.removeEventListener('touchstart', wordcloudclick);
+	              item.removeEventListener('touchend', touchend);
+	              hovered = undefined;
+	            });
 	          });
 	        }
 	

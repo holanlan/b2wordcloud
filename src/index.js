@@ -22,6 +22,7 @@ export class B2wordCloud {
         }, options)
         this._wordcloud2 = null
         this._maskCanvas = null
+        this._tempCanvas = null
         this._init()
     }
     _init() {
@@ -33,13 +34,17 @@ export class B2wordCloud {
             this._container = document.createElement('div')
             this._container.style.width = '100%'
             this._container.style.height = '100%'
+            this._createTempCanvas()
+
         } else if (this._options.renderer === 'canvas') {
             this._container = document.createElement('canvas')
-        }
-        if (this._options.renderer === 'canvas') {
             this._setCanvasSize()
         }
         this._wrapper.appendChild(this._container)
+    }
+    _createTempCanvas() {
+        this._tempCanvas = document.createElement('canvas')
+        this._setCanvasSize(this._tempCanvas)
     }
     _initTooltip() {
         if (!this._tooltip) {
@@ -60,11 +65,11 @@ export class B2wordCloud {
         }
         this._wrapper.appendChild(this._tooltip)
     }
-    _setCanvasSize() {
+    _setCanvasSize(target = this._container) {
         const width = this._wrapper.clientWidth
         const height = this._wrapper.clientHeight
-        this._container.width = width
-        this._container.height = height
+        target.width = width
+        target.height = height
     }
     _setOptions() {
         this._fixWeightFactor(this._options)
@@ -87,8 +92,8 @@ export class B2wordCloud {
                     offsetY = tooltipHeight + (this._options.renderer === 'div' ? 15 : 10)
                     offsetX = tooltipWidth/2
                     this._tooltip.style.position = 'absolute'
-                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.y - offsetY : event.y - offsetY) + 'px'
-                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.x - offsetX : event.x - offsetX) + 'px'
+                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px'
+                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px'
                     this._tooltip.innerHTML = html
                     
                 } else {
@@ -144,7 +149,6 @@ export class B2wordCloud {
     _render() {
         if (this._maskCanvas) {
             this._options.clearCanvas = false
-
             /* Determine bgPixel by creating
                 another canvas and fill the specified background color. */
             var bctx = document.createElement('canvas').getContext('2d');
@@ -153,8 +157,7 @@ export class B2wordCloud {
             bctx.fillRect(0, 0, 1, 1);
             var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 
-            var maskCanvasScaled =
-                document.createElement('canvas');
+            var maskCanvasScaled = document.createElement('canvas');
             maskCanvasScaled.width = this._options.renderer === 'canvas' ? this._container.width : this._container.clientWidth;
             maskCanvasScaled.height = this._options.renderer === 'canvas' ? this._container.height : this._container.clientHeight;
             var ctx = maskCanvasScaled.getContext('2d');
@@ -179,12 +182,12 @@ export class B2wordCloud {
                     newImageData.data[i + 3] = bgPixel[3] ? (bgPixel[3] - 1) : 0;
                 }
             }
-
             ctx.putImageData(newImageData, 0, 0);
-            ctx = this._container.getContext('2d');
+            var _ctx = this._tempCanvas ? this._tempCanvas : this._container
+            ctx = _ctx.getContext('2d');
             ctx.drawImage(maskCanvasScaled, 0, 0);
         }
-        this._wordcloud2 = WordCloud(this._container, this._options)
+        this._wordcloud2 = WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options)
     }
     _fixWeightFactor(option) {
         option.maxFontSize = typeof option.maxFontSize === 'number' ? option.maxFontSize : 36
@@ -219,6 +222,8 @@ export class B2wordCloud {
     resize() {
         if (this._options.renderer === 'canvas') {
             this._setCanvasSize()
+        } else if (this._options.renderer === 'div') {
+            this._container.textContent = ''
         }
         this._render()
     }
