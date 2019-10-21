@@ -15,7 +15,7 @@
 ## Installtion
 - 通过script引入
 ```
-<script src="dist/b2wordCloud.min.js"></script>
+<script src="dist/b2wordcloud.min.js"></script>
 ```
 - 通过npm安装
 ```
