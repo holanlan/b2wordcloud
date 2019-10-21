@@ -727,29 +727,35 @@ if (!window.clearImmediate) {
       } else {
         color = settings.color;
       }
-      // 支持阴影
-      if (elements[0].getContext) {
-        ctx = elements[0].getContext('2d');
-        gradient = ctx.createLinearGradient(0, 0, 0, 40);
-        ctx.shadowColor = options.shadowColor
-        ctx.shadowOffsetX = options.shadowOffsetX;
-        ctx.shadowOffsetY = options.shadowOffsetY;
-        ctx.shadowBlur = options.shadowBlur;
-      }
-      // 支持渐变色
+
       if (Object.prototype.toString.call(color) === '[object Array]') {
         var itemColor = color[index%color.length], ctx, gradient;
-        if (elements[0].getContext) {// 先判断是不是canvas渲染
-          if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-            for (var i = 0; i < itemColor.length; i++) {
-              gradient.addColorStop(i/itemColor.length, itemColor[i]);
+        elements.forEach(item => {
+          if (item.getContext) {
+            ctx = item.getContext('2d');
+            // 支持阴影
+            gradient = ctx.createLinearGradient(0, 0, 0, 40);
+            ctx.shadowColor = options.shadowColor
+            ctx.shadowOffsetX = options.shadowOffsetX;
+            ctx.shadowOffsetY = options.shadowOffsetY;
+            ctx.shadowBlur = options.shadowBlur;
+
+            // 支持渐变色 
+            if (Object.prototype.toString.call(itemColor) === '[object Array]') {
+              for (var i = 0; i < itemColor.length; i++) {
+                gradient.addColorStop(i/itemColor.length, itemColor[i]);
+              }
+              color = gradient
+            } else {
+              color = itemColor  
             }
-            itemColor = gradient
+          } else {
+            color = itemColor
           }
-        }
-        
-        color = itemColor  
+        })
       }
+
+      
 
       // get fontWeight that will be used to set ctx.font and font style rule
       var fontWeight;

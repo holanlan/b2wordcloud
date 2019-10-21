@@ -89,6 +89,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }, options);
 	        this._wordcloud2 = null;
 	        this._maskCanvas = null;
+	        this._tempCanvas = null;
 	        this._init();
 	    }
 	
@@ -105,13 +106,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._container = document.createElement('div');
 	                this._container.style.width = '100%';
 	                this._container.style.height = '100%';
+	                this._createTempCanvas();
 	            } else if (this._options.renderer === 'canvas') {
 	                this._container = document.createElement('canvas');
-	            }
-	            if (this._options.renderer === 'canvas') {
 	                this._setCanvasSize();
 	            }
 	            this._wrapper.appendChild(this._container);
+	        }
+	    }, {
+	        key: '_createTempCanvas',
+	        value: function _createTempCanvas() {
+	            this._tempCanvas = document.createElement('canvas');
+	            this._setCanvasSize(this._tempCanvas);
 	        }
 	    }, {
 	        key: '_initTooltip',
@@ -137,10 +143,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_setCanvasSize',
 	        value: function _setCanvasSize() {
+	            var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._container;
+	
 	            var width = this._wrapper.clientWidth;
 	            var height = this._wrapper.clientHeight;
-	            this._container.width = width;
-	            this._container.height = height;
+	            target.width = width;
+	            target.height = height;
 	        }
 	    }, {
 	        key: '_setOptions',
@@ -223,7 +231,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _render() {
 	            if (this._maskCanvas) {
 	                this._options.clearCanvas = false;
-	
 	                /* Determine bgPixel by creating
 	                    another canvas and fill the specified background color. */
 	                var bctx = document.createElement('canvas').getContext('2d');
@@ -255,12 +262,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        newImageData.data[i + 3] = bgPixel[3] ? bgPixel[3] - 1 : 0;
 	                    }
 	                }
-	
 	                ctx.putImageData(newImageData, 0, 0);
-	                ctx = this._container.getContext('2d');
+	                var _ctx = this._tempCanvas ? this._tempCanvas : this._container;
+	                ctx = _ctx.getContext('2d');
 	                ctx.drawImage(maskCanvasScaled, 0, 0);
 	            }
-	            this._wordcloud2 = WordCloud(this._container, this._options);
+	            this._wordcloud2 = WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options);
 	        }
 	    }, {
 	        key: '_fixWeightFactor',
@@ -299,6 +306,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function resize() {
 	            if (this._options.renderer === 'canvas') {
 	                this._setCanvasSize();
+	            } else if (this._options.renderer === 'div') {
+	                this._container.textContent = '';
 	            }
 	            this._render();
 	        }
@@ -1001,31 +1010,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	          color = settings.color;
 	        }
-	        // 支持阴影
-	        if (elements[0].getContext) {
-	          ctx = elements[0].getContext('2d');
-	          gradient = ctx.createLinearGradient(0, 0, 0, 40);
-	          ctx.shadowColor = options.shadowColor;
-	          ctx.shadowOffsetX = options.shadowOffsetX;
-	          ctx.shadowOffsetY = options.shadowOffsetY;
-	          ctx.shadowBlur = options.shadowBlur;
-	        }
-	        // 支持渐变色
+	
 	        if (Object.prototype.toString.call(color) === '[object Array]') {
 	          var itemColor = color[index % color.length],
 	              ctx,
 	              gradient;
-	          if (elements[0].getContext) {
-	            // 先判断是不是canvas渲染
-	            if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-	              for (var i = 0; i < itemColor.length; i++) {
-	                gradient.addColorStop(i / itemColor.length, itemColor[i]);
-	              }
-	              itemColor = gradient;
-	            }
-	          }
+	          elements.forEach(function (item) {
+	            if (item.getContext) {
+	              ctx = item.getContext('2d');
+	              // 支持阴影
+	              gradient = ctx.createLinearGradient(0, 0, 0, 40);
+	              ctx.shadowColor = options.shadowColor;
+	              ctx.shadowOffsetX = options.shadowOffsetX;
+	              ctx.shadowOffsetY = options.shadowOffsetY;
+	              ctx.shadowBlur = options.shadowBlur;
 	
-	          color = itemColor;
+	              // 支持渐变色 
+	              if (Object.prototype.toString.call(itemColor) === '[object Array]') {
+	                for (var i = 0; i < itemColor.length; i++) {
+	                  gradient.addColorStop(i / itemColor.length, itemColor[i]);
+	                }
+	                color = gradient;
+	              } else {
+	                color = itemColor;
+	              }
+	            } else {
+	              color = itemColor;
+	            }
+	          });
 	        }
 	
 	        // get fontWeight that will be used to set ctx.font and font style rule

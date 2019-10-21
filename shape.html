@@ -372,6 +372,7 @@
         // return
         var wordCloud = new B2wordCloud(document.getElementById("chart"), {
             list: words,
+            // renderer: 'div',
             tooltip: {
                 formatter: function(item) {
                     return '<div>' + item[0] + '</div>' + '<div>' + item[1] + '</div>'

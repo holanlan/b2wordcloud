@@ -19,6 +19,7 @@
     <script src="dist/b2wordCloud.js"></script>
     <script>
         var wordCloud = new B2wordCloud(document.getElementById("chart"), {
+            renderer: 'div',
             list: [['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46]],
             tooltip: {
                 formatter: function(item) {
@@ -31,7 +32,13 @@
             shadowBlur: 5,
             color: [
                 ['#00fbf2', '#001e80'],
-            ]
+                '#f00',
+                '#ff0'
+            ],
+            // color: '#f00',
+            // color: function () {
+            //     return '#ff0'
+            // }
         })
         window.addEventListener('resize', function() {
             wordCloud.resize()
