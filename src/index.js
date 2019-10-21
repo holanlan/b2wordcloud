@@ -92,8 +92,8 @@ export class B2wordCloud {
                     offsetY = tooltipHeight + (this._options.renderer === 'div' ? 15 : 10)
                     offsetX = tooltipWidth/2
                     this._tooltip.style.position = 'absolute'
-                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.y - offsetY : event.y - offsetY) + 'px'
-                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.x - offsetX : event.x - offsetX) + 'px'
+                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px'
+                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px'
                     this._tooltip.innerHTML = html
                     
                 } else {

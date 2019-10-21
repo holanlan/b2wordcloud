@@ -178,8 +178,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        offsetY = tooltipHeight + (_this._options.renderer === 'div' ? 15 : 10);
 	                        offsetX = tooltipWidth / 2;
 	                        _this._tooltip.style.position = 'absolute';
-	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.y - offsetY : event.y - offsetY) + 'px';
-	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.x - offsetX : event.x - offsetX) + 'px';
+	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px';
+	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px';
 	                        _this._tooltip.innerHTML = html;
 	                    } else {
 	                        _this._tooltip.style.display = 'none';
@@ -1123,7 +1123,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'transformOrigin': '50% 40%',
 	              'webkitTransformOrigin': '50% 40%',
 	              'msTransformOrigin': '50% 40%',
-	              'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor //增加文字阴影
+	              'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
+	              'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
 	            };
 	            if (color) {
 	              if (Object.prototype.toString.call(color) === '[object Array]') {
@@ -1411,10 +1412,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          imageData = bctx = bgPixel = undefined;
 	        }
-	
 	        // fill the infoGrid with empty state if we need it
 	        if (settings.hover || settings.click) {
-	
 	          interactive = true;
 	
 	          /* fill the grid with empty state */
@@ -1422,30 +1421,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	          while (gx--) {
 	            infoGrid[gx] = [];
 	          }
-	
-	          if (settings.hover) {
-	            canvas.addEventListener('mousemove', wordcloudhover);
-	          }
-	
 	          var touchend = function touchend(e) {
 	            e.preventDefault();
 	          };
+	          elements.forEach(function (item) {
+	            if (settings.hover) {
+	              item.addEventListener('mousemove', wordcloudhover);
+	            }
+	            if (settings.click) {
+	              item.addEventListener('click', wordcloudclick);
+	              item.addEventListener('touchstart', wordcloudclick);
+	              item.addEventListener('touchend', touchend);
+	              item.style.webkitTapHighlightColor = 'rgba(0, 0, 0, 0)';
+	            }
 	
-	          if (settings.click) {
-	            canvas.addEventListener('click', wordcloudclick);
-	            canvas.addEventListener('touchstart', wordcloudclick);
-	            canvas.addEventListener('touchend', touchend);
-	            canvas.style.webkitTapHighlightColor = 'rgba(0, 0, 0, 0)';
-	          }
-	
-	          canvas.addEventListener('wordcloudstart', function stopInteraction() {
-	            canvas.removeEventListener('wordcloudstart', stopInteraction);
-	
-	            canvas.removeEventListener('mousemove', wordcloudhover);
-	            canvas.removeEventListener('click', wordcloudclick);
-	            canvas.removeEventListener('touchstart', wordcloudclick);
-	            canvas.removeEventListener('touchend', touchend);
-	            hovered = undefined;
+	            item.addEventListener('wordcloudstart', function stopInteraction() {
+	              item.removeEventListener('wordcloudstart', stopInteraction);
+	              item.removeEventListener('mousemove', wordcloudhover);
+	              item.removeEventListener('click', wordcloudclick);
+	              item.removeEventListener('touchstart', wordcloudclick);
+	              item.removeEventListener('touchend', touchend);
+	              hovered = undefined;
+	            });
 	          });
 	        }
 	
