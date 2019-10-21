@@ -372,7 +372,6 @@
         // return
         var wordCloud = new B2wordCloud(document.getElementById("chart"), {
             list: words,
-            renderer: 'div',
             tooltip: {
                 formatter: function(item) {
                     return '<div>' + item[0] + '</div>' + '<div>' + item[1] + '</div>'
@@ -394,7 +393,7 @@
             shadowOffsetY: 2,
             shadowBlur: 2,
             shadowColor: 'rgba(0,0,0,0.8)',
-            // maskShape: './src/logo.png',
+            maskShape: './src/logo.png',
             backgroundColor: '#fff'
         })
         window.addEventListener('resize', function() {
