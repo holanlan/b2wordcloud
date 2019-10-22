@@ -11,6 +11,7 @@ function deepMerge(obj1, obj2) {
 export class B2wordcloud {
     constructor(element, options) {
         this._wrapper = element
+        this._wrapper.style.position = 'relative'
         this._container = null
         this._tooltip = null
         this._options = deepMerge({
@@ -92,8 +93,8 @@ export class B2wordcloud {
                     offsetY = tooltipHeight + (this._options.renderer === 'div' ? 15 : 10)
                     offsetX = tooltipWidth/2
                     this._tooltip.style.position = 'absolute'
-                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px'
-                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px'
+                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.pageY - offsetY : event.offsetY - offsetY) + 'px'
+                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.pageX - offsetX : event.offsetX - offsetX) + 'px'
                     this._tooltip.innerHTML = html
                     
                 } else {

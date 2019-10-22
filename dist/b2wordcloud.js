@@ -78,6 +78,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        _classCallCheck(this, B2wordcloud);
 	
 	        this._wrapper = element;
+	        this._wrapper.style.position = 'relative';
 	        this._container = null;
 	        this._tooltip = null;
 	        this._options = deepMerge({
@@ -178,8 +179,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        offsetY = tooltipHeight + (_this._options.renderer === 'div' ? 15 : 10);
 	                        offsetX = tooltipWidth / 2;
 	                        _this._tooltip.style.position = 'absolute';
-	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px';
-	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px';
+	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.pageY - offsetY : event.offsetY - offsetY) + 'px';
+	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.pageX - offsetX : event.offsetX - offsetX) + 'px';
 	                        _this._tooltip.innerHTML = html;
 	                    } else {
 	                        _this._tooltip.style.display = 'none';
