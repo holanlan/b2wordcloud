@@ -65,8 +65,10 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
   - `background`：自定义tooltip背景色，默认为'rgba(0,0,0,0.8)'
 - `color`：基于原有的color配置项做了修改，原color配置项支持字符串与函数，此处不变，可兼容原wordcloud2配置，新增特性为支持数组，当color为数组时，将按数组顺序取色，其中数组分以下两种情况
   - 当数组元素为颜色字符串时，直接使用渲染
-  - 当数组元素为数组时，将使用数组元素渲染渐变色
-    - e.g: color: [['blue', 'white']]，如例子所示，将渲染从上到下由蓝到白的渐变色
+  - 当数组元素为数组时，将使用数组元素渲染渐变色，v1.0.7版本更新，支持横向渐变或纵向渐变
+    - e.g: color: [['blue', 'white', 0]]，如例子所示，将渲染从上到下由蓝到白的纵向渐变色
+    - e.g: color: [['blue', 'white', 1]]，如例子所示，将渲染从左到右由蓝到白的横向渐变色
+    - color格式为：[[color1, color2, color3, ...colorN, type]]，type为0或1，默认为0
 - `shadowOffsetX`：新增配置项，文字阴影X轴偏移量
 - `shadowOffsetY`：新增配置项，文字阴影Y轴偏移量
 - `shadowBlur`：新增配置项，文字阴影模糊量
@@ -86,3 +88,11 @@ e.g:
 var wordCloud = new B2wordCloud(element, options)
 
 wordcloud.resize()
+
+## 版本更新
+
+### v1.0.7
+
+- renderer: 'div' 模式下，阴影改用filter: drop-shadow，阴影效果更佳
+- renderer: 'canvas' 模式下优化渐变色计算逻辑，效果更佳
+- 支持横向渐变与纵向渐变两种选项，详情见`color`配置项

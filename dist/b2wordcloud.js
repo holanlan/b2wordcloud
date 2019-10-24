@@ -1012,34 +1012,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	          color = settings.color;
 	        }
 	
-	        if (Object.prototype.toString.call(color) === '[object Array]') {
-	          var itemColor = color[index % color.length],
-	              ctx,
-	              gradient;
-	          elements.forEach(function (item) {
-	            if (item.getContext) {
-	              ctx = item.getContext('2d');
-	              // 支持阴影
-	              gradient = ctx.createLinearGradient(0, 0, 0, 40);
-	              ctx.shadowColor = options.shadowColor;
-	              ctx.shadowOffsetX = options.shadowOffsetX;
-	              ctx.shadowOffsetY = options.shadowOffsetY;
-	              ctx.shadowBlur = options.shadowBlur;
+	        // if (Object.prototype.toString.call(color) === '[object Array]') {
+	        //   var itemColor = color[index%color.length], ctx, gradient;
 	
-	              // 支持渐变色 
-	              if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-	                for (var i = 0; i < itemColor.length; i++) {
-	                  gradient.addColorStop(i / itemColor.length, itemColor[i]);
-	                }
-	                color = gradient;
-	              } else {
-	                color = itemColor;
-	              }
-	            } else {
-	              color = itemColor;
-	            }
-	          });
-	        }
+	        //   elements.forEach(item => {
+	        //     if (item.getContext) {
+	        //       ctx = item.getContext('2d');
+	        //       // 支持阴影  
+	        //       ctx.shadowColor = options.shadowColor
+	        //       ctx.shadowOffsetX = options.shadowOffsetX;
+	        //       ctx.shadowOffsetY = options.shadowOffsetY;
+	        //       ctx.shadowBlur = options.shadowBlur;
+	
+	        //       // 支持渐变色 
+	        //       if (Object.prototype.toString.call(itemColor) === '[object Array]') {
+	        //         if (Object.prototype.toString.call(itemColor[itemColor.length - 1]) !== '[object Number]') {
+	        //           itemColor[itemColor.length] = 0
+	        //         }
+	        //         var _type = itemColor[itemColor.length - 1]//渐变形式，默认为0，纵向渐变，1为横向渐变
+	        //         var _textWidth = ctx.measureText(word).width
+	        //         console.log(_textWidth)
+	        //         gradient = ctx.createLinearGradient(
+	        //           _type !== 0 ? -fontSize : 0, 
+	        //           _type === 0 ? -fontSize/2 : 0, 
+	        //           _type !== 0 ? _textWidth : 0, 
+	        //           _type === 0 ? fontSize/2 : 0);
+	        //         for (var i = 0; i < itemColor.length - 1; i++) {
+	        //           gradient.addColorStop(i/(itemColor.length - 2), itemColor[i]);
+	        //         }
+	        //         color = gradient
+	        //       } else {
+	        //         color = itemColor  
+	        //       }
+	        //     } else {
+	        //       color = itemColor
+	        //     }
+	        //   })
+	        // }
+	
 	
 	        // get fontWeight that will be used to set ctx.font and font style rule
 	        var fontWeight;
@@ -1064,16 +1074,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	          w: (bounds[1] - bounds[3] + 1) * g,
 	          h: (bounds[2] - bounds[0] + 1) * g
 	        };
+	
+	        var itemColor,
+	            gradient,
+	            isItemColorArray = false,
+	            colorStartPosition = 'left';
+	        if (Object.prototype.toString.call(color) === '[object Array]') {
+	          itemColor = color[index % color.length];
+	          color = itemColor;
+	          if (Object.prototype.toString.call(itemColor) === '[object Array]') {
+	            isItemColorArray = true;
+	          }
+	          if (isItemColorArray && Object.prototype.toString.call(itemColor[itemColor.length - 1]) !== '[object Number]') {
+	            itemColor[itemColor.length] = 0;
+	          }
+	          colorStartPosition = itemColor[itemColor.length - 1] === 0 ? 'top' : 'left';
+	        }
 	        elements.forEach(function (el, i) {
 	          if (el.getContext) {
 	            var ctx = el.getContext('2d');
 	            var mu = info.mu;
-	
 	            // Save the current state before messing it
 	            ctx.save();
 	            ctx.scale(1 / mu, 1 / mu);
+	            // 支持阴影  
+	            ctx.shadowColor = options.shadowColor;
+	            ctx.shadowOffsetX = options.shadowOffsetX;
+	            ctx.shadowOffsetY = options.shadowOffsetY;
+	            ctx.shadowBlur = options.shadowBlur;
 	
 	            ctx.font = fontWeight + ' ' + (fontSize * mu).toString(10) + 'px ' + settings.fontFamily;
+	            // 支持渐变色 
+	            if (isItemColorArray) {
+	              var _textWidth = ctx.measureText(word).width;
+	              gradient = ctx.createLinearGradient(colorStartPosition !== 'top' ? -_textWidth / 2 : 0, colorStartPosition === 'top' ? -fontSize / 2 : 0, colorStartPosition !== 'top' ? _textWidth / 2 : 0, colorStartPosition === 'top' ? fontSize / 2 : 0);
+	              for (var i = 0; i < itemColor.length - 1; i++) {
+	                gradient.addColorStop(i / (itemColor.length - 2), itemColor[i]);
+	              }
+	              color = gradient;
+	            }
 	            ctx.fillStyle = color;
 	
 	            // Translate the canvas position to the origin coordinate of where
@@ -1101,6 +1140,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // Restore the state.
 	            ctx.restore();
 	          } else {
+	            if (isItemColorArray) {
+	              color = itemColor;
+	            }
 	            // drawText on DIV element
 	            var span = document.createElement('span');
 	            var transformRule = '';
@@ -1124,7 +1166,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'transformOrigin': '50% 40%',
 	              'webkitTransformOrigin': '50% 40%',
 	              'msTransformOrigin': '50% 40%',
-	              'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
+	              // 'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
+	              'filter': 'drop-shadow(' + options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor + ')',
 	              'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
 	            };
 	            if (color) {
@@ -1133,7 +1176,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                styleRules = Object.assign({
 	                  webkitBackgroundClip: 'text',
 	                  webkitTextFillColor: 'transparent',
-	                  backgroundImage: '-webkit-linear-gradient(top,' + color.join(',') + ')'
+	                  backgroundImage: '-webkit-linear-gradient(' + colorStartPosition + ',' + color.filter(function (item, i) {
+	                    return i != color.length - 1;
+	                  }).join(',') + ')'
 	                }, styleRules);
 	              }
 	              styleRules.color = color;
