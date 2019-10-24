@@ -91,6 +91,10 @@ wordcloud.resize()
 
 ## 版本更新
 
+### v1.0.8
+
+- 修复了tooltip移位问题
+
 ### v1.0.7
 
 - renderer: 'div' 模式下，阴影改用filter: drop-shadow，阴影效果更佳

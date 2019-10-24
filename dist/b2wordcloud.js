@@ -139,7 +139,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._tooltip.style.zIndex = '999';
 	                this._tooltip.style.display = 'none';
 	            }
-	            this._wrapper.appendChild(this._tooltip);
+	            document.body.appendChild(this._tooltip);
 	        }
 	    }, {
 	        key: '_setCanvasSize',
@@ -176,11 +176,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                        tooltipWidth = _this._tooltip.clientWidth;
 	                        tooltipHeight = _this._tooltip.clientHeight;
 	
-	                        offsetY = tooltipHeight + (_this._options.renderer === 'div' ? 15 : 10);
-	                        offsetX = tooltipWidth / 2;
+	                        offsetY = tooltipHeight + 15;
+	                        offsetX = tooltipWidth / 2 + 5;
 	                        _this._tooltip.style.position = 'absolute';
-	                        _this._tooltip.style.top = (_this._options.renderer === 'div' ? event.pageY - offsetY : event.offsetY - offsetY) + 'px';
-	                        _this._tooltip.style.left = (_this._options.renderer === 'div' ? event.pageX - offsetX : event.offsetX - offsetX) + 'px';
+	                        _this._tooltip.style.top = event.pageY - offsetY + 'px';
+	                        _this._tooltip.style.left = event.pageX - offsetX + 'px';
 	                        _this._tooltip.innerHTML = html;
 	                    } else {
 	                        _this._tooltip.style.display = 'none';
@@ -717,6 +717,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	
 	      var wordcloudhover = function wordcloudhover(evt) {
+	        console.log(evt);
 	        var info = getInfoGridFromMouseTouchEvent(evt);
 	
 	        if (hovered === info) {

@@ -414,6 +414,7 @@ if (!window.clearImmediate) {
     };
 
     var wordcloudhover = function wordcloudhover(evt) {
+      console.log(evt)
       var info = getInfoGridFromMouseTouchEvent(evt);
 
       if (hovered === info) {
