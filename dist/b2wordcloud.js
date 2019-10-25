@@ -187,7 +187,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                };
 	            }
-	            if (this._options && /\.(jpg|png)$/.test(this._options.maskShape)) {
+	            if (this._options && this._options.maskShape) {
 	                this._maskImage();
 	            } else {
 	                this._render();
