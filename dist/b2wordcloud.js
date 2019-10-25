@@ -187,7 +187,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                };
 	            }
-	            if (this._options && this._options.maskShape) {
+	            if (this._options && this._options.maskImage) {
 	                this._maskImage();
 	            } else {
 	                this._render();
@@ -200,7 +200,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	            var img = window.document.createElement('img');
 	            img.crossOrigin = "Anonymous";
-	            img.src = this._options.maskShape;
+	            img.src = this._options.maskImage;
 	            img.onload = function () {
 	                _this2._maskCanvas = document.createElement('canvas');
 	                _this2._maskCanvas.width = img.width;

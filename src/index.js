@@ -102,7 +102,7 @@ export class B2wordcloud {
                 
             }
         }
-        if (this._options && this._options.maskShape) {
+        if (this._options && this._options.maskImage) {
             this._maskImage()
         } else {
             this._render()
@@ -112,7 +112,7 @@ export class B2wordcloud {
     _maskImage() {
         var img = window.document.createElement('img')
         img.crossOrigin = "Anonymous"
-        img.src = this._options.maskShape
+        img.src = this._options.maskImage
         img.onload = () => {
             this._maskCanvas = document.createElement('canvas');
             this._maskCanvas.width = img.width;

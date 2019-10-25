@@ -89,7 +89,10 @@ var wordCloud = new B2wordCloud(element, options)
 
 wordcloud.resize()
 
-## 版本更新
+## 重要版本更新
+
+### v1.0.11
+- 图片形状API实现错误，正确为maskImage（遵循文档）
 
 ### v1.0.8
 
