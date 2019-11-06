@@ -8,9 +8,10 @@ function deepMerge(obj1, obj2) {
     }
     return obj1;
 }
-export class B2wordCloud {
+export class B2wordcloud {
     constructor(element, options) {
         this._wrapper = element
+        this._wrapper.style.position = 'relative'
         this._container = null
         this._tooltip = null
         this._options = deepMerge({
@@ -63,7 +64,7 @@ export class B2wordCloud {
             this._tooltip.style.zIndex = '999'
             this._tooltip.style.display = 'none'
         }
-        this._wrapper.appendChild(this._tooltip)
+        document.body.appendChild(this._tooltip)
     }
     _setCanvasSize(target = this._container) {
         const width = this._wrapper.clientWidth
@@ -89,20 +90,19 @@ export class B2wordCloud {
                     tooltipWidth = this._tooltip.clientWidth
                     tooltipHeight = this._tooltip.clientHeight
 
-                    offsetY = tooltipHeight + (this._options.renderer === 'div' ? 15 : 10)
-                    offsetX = tooltipWidth/2
+                    offsetY = tooltipHeight + 15
+                    offsetX = tooltipWidth/2 + 5
                     this._tooltip.style.position = 'absolute'
-                    this._tooltip.style.top = (this._options.renderer === 'div' ? event.pageY - offsetY : event.pageY - offsetY) + 'px'
-                    this._tooltip.style.left = (this._options.renderer === 'div' ? event.pageX - offsetX : event.pageX - offsetX) + 'px'
+                    this._tooltip.style.top = event.pageY - offsetY + 'px'
+                    this._tooltip.style.left = event.pageX - offsetX + 'px'
                     this._tooltip.innerHTML = html
-                    
                 } else {
                     this._tooltip.style.display = 'none'
                 }
                 
             }
         }
-        if (this._options && /\.(jpg|png)$/.test(this._options.maskShape)) {
+        if (this._options && this._options.maskImage) {
             this._maskImage()
         } else {
             this._render()
@@ -112,7 +112,7 @@ export class B2wordCloud {
     _maskImage() {
         var img = window.document.createElement('img')
         img.crossOrigin = "Anonymous"
-        img.src = this._options.maskShape
+        img.src = this._options.maskImage
         img.onload = () => {
             this._maskCanvas = document.createElement('canvas');
             this._maskCanvas.width = img.width;
@@ -230,4 +230,4 @@ export class B2wordCloud {
 }
 
 
-module.exports = B2wordCloud
+module.exports = B2wordcloud

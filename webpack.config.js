@@ -2,12 +2,12 @@ const webpack = require('webpack')
 const path = require('path');
 var config = {
     entry: {
-        'b2wordCloud': './src/index.js'
+        'b2wordcloud': './src/index.js'
     },
     output: {
         filename: '[name].js',
         path: path.resolve(__dirname, 'dist'),
-        library: 'B2wordCloud',
+        library: 'B2wordcloud',
         libraryTarget: 'umd'
     },
     module: {

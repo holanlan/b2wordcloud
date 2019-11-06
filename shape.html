@@ -24,7 +24,7 @@
     <div class="test">
         <div id="chart"></div>
     </div>
-    <script src="dist/b2wordCloud.js"></script>
+    <script src="dist/b2wordcloud.js"></script>
     <script>
         var keywords = {
             "visualMap": 22199,
@@ -370,7 +370,7 @@
             words.push([i, keywords[i]])
         }
         // return
-        var wordCloud = new B2wordCloud(document.getElementById("chart"), {
+        var wordCloud = new B2wordcloud(document.getElementById("chart"), {
             list: words,
             tooltip: {
                 formatter: function(item) {
@@ -393,7 +393,7 @@
             shadowOffsetY: 2,
             shadowBlur: 2,
             shadowColor: 'rgba(0,0,0,0.8)',
-            maskShape: './src/logo.png',
+            maskImage: './src/logo.png',
             backgroundColor: '#fff'
         })
         window.addEventListener('resize', function() {

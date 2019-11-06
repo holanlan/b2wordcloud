@@ -6,9 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>js词云</title>
     <style>
-        html, body, .test, #chart {
+        html, body, .test{
             width: 100%;
             height: 100%;
+            position: relative;
+        }
+        #chart {
+            width: 500px;
+            height: 500px;
+            margin: 0 auto
         }
     </style>
 </head>
@@ -16,9 +22,10 @@
     <div class="test">
         <div id="chart"></div>
     </div>
-    <script src="dist/b2wordCloud.js"></script>
+    <script src="dist/b2wordcloud.js"></script>
     <script>
-        var wordCloud = new B2wordCloud(document.getElementById("chart"), {
+        var wordCloud = new B2wordcloud(document.getElementById("chart"), {
+            // renderer: 'div',
             list: [['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46]],
             tooltip: {
                 formatter: function(item) {
@@ -30,7 +37,8 @@
             shadowOffsetY: 2,
             shadowBlur: 5,
             color: [
-                ['#00fbf2', '#001e80'],
+                ['#00fbf2', '#001e80', 1],
+                ['green', 'white'],
                 '#f00',
                 '#ff0'
             ],
