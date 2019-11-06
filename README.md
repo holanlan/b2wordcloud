@@ -77,7 +77,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 - `maxFontSize`：新增配置项，最大字号
 - `minFontSize`：新增配置项，最小字号
 
-### methods
+### methods (方法)
 
 - resize()
 
