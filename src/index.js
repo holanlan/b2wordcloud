@@ -153,7 +153,7 @@ export class B2wordcloud {
                 another canvas and fill the specified background color. */
             var bctx = document.createElement('canvas').getContext('2d');
 
-            bctx.fillStyle = this._options.backgroundColor || '#fff';
+            bctx.fillStyle = this._options.backgroundColor || '#rgba(255,255,255,0)';
             bctx.fillRect(0, 0, 1, 1);
             var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 
