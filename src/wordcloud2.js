@@ -186,7 +186,7 @@ if (!window.clearImmediate) {
       minSize: 0, // 0 to disable
       weightFactor: 1,
       clearCanvas: true,
-      backgroundColor: 'rgba(255, 255, 255, 0)',  // opaque white = rgba(255, 255, 255, 1)
+      backgroundColor: '#fff',  // opaque white = rgba(255, 255, 255, 1)
 
       gridSize: 8,
       drawOutOfBound: false,

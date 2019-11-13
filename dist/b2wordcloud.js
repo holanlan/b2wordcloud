@@ -236,7 +236,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    another canvas and fill the specified background color. */
 	                var bctx = document.createElement('canvas').getContext('2d');
 	
-	                bctx.fillStyle = this._options.backgroundColor || '#rgba(255,255,255,0)';
+	                bctx.fillStyle = this._options.backgroundColor || '#fff';
 	                bctx.fillRect(0, 0, 1, 1);
 	                var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 	
@@ -504,7 +504,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        minSize: 0, // 0 to disable
 	        weightFactor: 1,
 	        clearCanvas: true,
-	        backgroundColor: 'rgba(255, 255, 255, 0)', // opaque white = rgba(255, 255, 255, 1)
+	        backgroundColor: '#fff', // opaque white = rgba(255, 255, 255, 1)
 	
 	        gridSize: 8,
 	        drawOutOfBound: false,
