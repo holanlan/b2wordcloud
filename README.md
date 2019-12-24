@@ -76,6 +76,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 - `maskImage`： 新增配置项，白底黑形状图片，上传后词云可渲染图片形状
 - `maxFontSize`：新增配置项，最大字号
 - `minFontSize`：新增配置项，最小字号
+- `cursorWhenHover`：新增配置项，鼠标经过时样式 'default' | 'pointer'
 
 ### methods
 
@@ -91,8 +92,11 @@ wordcloud.resize()
 
 ## 重要版本更新
 
+### v1.0.12
+- 新增 `cursorWhenHover` 配置项
+
 ### v1.0.11
-- 图片形状API实现错误，正确为maskImage（遵循文档）
+- 图片形状API实现错误，正确为 `maskImage`（遵循文档）
 
 ### v1.0.8
 

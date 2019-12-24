@@ -531,7 +531,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        classes: null,
 	
 	        hover: null,
-	        click: null
+	        click: null,
+	        cursorWhenHover: 'pointer'
 	      };
 	
 	      if (options) {
@@ -718,18 +719,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      var wordcloudhover = function wordcloudhover(evt) {
 	        var info = getInfoGridFromMouseTouchEvent(evt);
-	
 	        if (hovered === info) {
 	          return;
 	        }
-	
 	        hovered = info;
 	        if (!info) {
 	          settings.hover(undefined, undefined, evt);
-	
+	          evt.target.style.cursor = 'default';
 	          return;
+	        } else if (settings.cursorWhenHover === 'pointer') {
+	          evt.target.style.cursor = 'pointer';
 	        }
-	
 	        settings.hover(info.item, info.dimension, evt);
 	      };
 	
@@ -1167,8 +1167,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'webkitTransformOrigin': '50% 40%',
 	              'msTransformOrigin': '50% 40%',
 	              // 'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
-	              'filter': 'drop-shadow(' + options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor + ')',
-	              'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
+	              'filter': 'drop-shadow(' + options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor + ')'
+	              // 'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
 	            };
 	            if (color) {
 	              if (Object.prototype.toString.call(color) === '[object Array]') {
