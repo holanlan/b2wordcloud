@@ -92,7 +92,7 @@ wordcloud.resize()
 
 ## 重要版本更新
 
-### v1.0.12
+### v1.0.14
 - 新增 `cursorWhenHover` 配置项
 
 ### v1.0.11
