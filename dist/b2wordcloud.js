@@ -164,6 +164,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    offsetY = void 0,
 	                    offsetX = void 0;
 	                var tempHover = this._options.hover;
+	                var tempOut = this._options.mouseout;
+	                this._options.mouseout = function () {
+	                    if (tempOut) tempOut();
+	                    _this._tooltip.style.display = 'none';
+	                };
 	                this._options.hover = function (item, dimension, event) {
 	                    if (tempHover) tempHover(item, dimension, event);
 	                    if (item) {
@@ -532,7 +537,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        hover: null,
 	        click: null,
-	        cursorWhenHover: 'pointer'
+	        cursorWhenHover: 'pointer',
+	        mouseout: null
 	      };
 	
 	      if (options) {
@@ -716,7 +722,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        return infoGrid[x][y];
 	      };
-	
+	      var wordcloudout = function wordcloudout() {
+	        settings.mouseout();
+	      };
 	      var wordcloudhover = function wordcloudhover(evt) {
 	        var info = getInfoGridFromMouseTouchEvent(evt);
 	        if (hovered === info) {
@@ -1473,6 +1481,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          elements.forEach(function (item) {
 	            if (settings.hover) {
 	              item.addEventListener('mousemove', wordcloudhover);
+	              item.addEventListener('mouseout', wordcloudout);
 	            }
 	            if (settings.click) {
 	              item.addEventListener('click', wordcloudclick);
@@ -1484,6 +1493,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            item.addEventListener('wordcloudstart', function stopInteraction() {
 	              item.removeEventListener('wordcloudstart', stopInteraction);
 	              item.removeEventListener('mousemove', wordcloudhover);
+	              item.removeEventListener('mouseout', wordcloudout);
 	              item.removeEventListener('click', wordcloudclick);
 	              item.removeEventListener('touchstart', wordcloudclick);
 	              item.removeEventListener('touchend', touchend);

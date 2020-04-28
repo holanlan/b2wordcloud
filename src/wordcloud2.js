@@ -214,7 +214,8 @@ if (!window.clearImmediate) {
 
       hover: null,
       click: null,
-      cursorWhenHover: 'pointer'
+      cursorWhenHover: 'pointer',
+      mouseout: null
     };
 
     if (options) {
@@ -413,7 +414,9 @@ if (!window.clearImmediate) {
 
       return infoGrid[x][y];
     };
-
+    var wordcloudout = function() {
+      settings.mouseout()
+    }
     var wordcloudhover = function wordcloudhover(evt) {
       var info = getInfoGridFromMouseTouchEvent(evt);
       if (hovered === info) {
@@ -1204,6 +1207,7 @@ if (!window.clearImmediate) {
         elements.forEach(function(item) {
           if (settings.hover) {
             item.addEventListener('mousemove', wordcloudhover);
+            item.addEventListener('mouseout', wordcloudout)
           }
           if (settings.click) {
             item.addEventListener('click', wordcloudclick);
@@ -1215,6 +1219,7 @@ if (!window.clearImmediate) {
           item.addEventListener('wordcloudstart', function stopInteraction() {
             item.removeEventListener('wordcloudstart', stopInteraction);
             item.removeEventListener('mousemove', wordcloudhover);
+            item.removeEventListener('mouseout', wordcloudout);
             item.removeEventListener('click', wordcloudclick);
             item.removeEventListener('touchstart', wordcloudclick);
             item.removeEventListener('touchend', touchend);

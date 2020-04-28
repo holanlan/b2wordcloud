@@ -78,6 +78,11 @@ export class B2wordcloud {
             this._initTooltip()
             let tooltipWidth, tooltipHeight, offsetY, offsetX
             const tempHover = this._options.hover
+            const tempOut = this._options.mouseout
+            this._options.mouseout = () => {
+                if (tempOut) tempOut()
+                this._tooltip.style.display = 'none'
+            }
             this._options.hover = (item, dimension, event) => {
                 if (tempHover) tempHover(item, dimension, event)
                 if (item) {
