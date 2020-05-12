@@ -198,14 +198,15 @@ export class B2wordcloud {
         option.maxFontSize = typeof option.maxFontSize === 'number' ? option.maxFontSize : 36
         option.minFontSize = typeof option.minFontSize === 'number' ? option.minFontSize : 6
         if(option.list && option.list.length > 0){
-            var min = option.list[0][1]
+            var min = Number(option.list[0][1])
             var max = 0
             for(var i = 0, len = option.list.length; i < len; i++ ) {
-                if(min > option.list[i][1]) {
-                    min = option.list[i][1]
+                var item = Number(option.list[i][1])
+                if(min > item) {
+                    min = item
                 }
-                if(max < option.list[i][1]) {
-                    max = option.list[i][1]
+                if(max < item) {
+                    max = item
                 }
             }
             
