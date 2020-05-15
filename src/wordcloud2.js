@@ -870,7 +870,6 @@ if (!window.clearImmediate) {
             color = itemColor
           }
           // drawText on DIV element
-          var div = document.createElement('div');
           var span = document.createElement('span');
           var transformRule = '';
           transformRule = 'rotate(' + (- rotateDeg / Math.PI * 180) + 'deg) ';
@@ -879,8 +878,11 @@ if (!window.clearImmediate) {
               'translateX(-' + (info.fillTextWidth / 4) + 'px) ' +
               'scale(' + (1 / info.mu) + ')';
           }
-          var posStyle = {
+          var styleRules = {
             'position': 'absolute',
+            'display': 'block',
+            'font': fontWeight + ' ' +
+                    (fontSize * info.mu) + 'px ' + settings.fontFamily,
             'left': ((gx + info.gw / 2) * g + info.fillTextOffsetX) + 'px',
             'top': ((gy + info.gh / 2) * g + info.fillTextOffsetY) + 'px',
             'width': info.fillTextWidth + 'px',
@@ -893,14 +895,6 @@ if (!window.clearImmediate) {
             'transformOrigin': '50% 40%',
             'webkitTransformOrigin': '50% 40%',
             'msTransformOrigin': '50% 40%',
-          }
-          var styleRules = {
-            
-            'display': 'block',
-            'font': fontWeight + ' ' +
-                    (fontSize * info.mu) + 'px ' + settings.fontFamily,
-            
-            
             // 'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
             'filter': 'drop-shadow(' + options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor + ')',
             // 'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
@@ -918,9 +912,6 @@ if (!window.clearImmediate) {
             styleRules.color = color;
           }
           span.textContent = word;
-          for(var cssProp in posStyle) {
-            div.style[cssProp] = posStyle[cssProp];
-          }
           for (var cssProp in styleRules) {
             span.style[cssProp] = styleRules[cssProp];
           }
@@ -932,8 +923,7 @@ if (!window.clearImmediate) {
           if (classes) {
             span.className += classes;
           }
-          div.appendChild(span)
-          el.appendChild(div);
+          el.appendChild(span);
         }
       });
     };
