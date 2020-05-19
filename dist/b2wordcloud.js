@@ -748,7 +748,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          return;
 	        }
 	
-	        settings.click(info.item, info.dimension, evt);
+	        settings.click(info.item, info.dimension, evt, info.color);
 	        evt.preventDefault();
 	      };
 	
@@ -1087,7 +1087,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var itemColor,
 	            gradient,
 	            isItemColorArray = false,
-	            colorStartPosition = 'left';
+	            colorStartPosition = 'left',
+	            markColorInfo;
 	        if (Object.prototype.toString.call(color) === '[object Array]') {
 	          itemColor = color[index % color.length];
 	          color = itemColor;
@@ -1099,6 +1100,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          colorStartPosition = itemColor[itemColor.length - 1] === 0 ? 'top' : 'left';
 	        }
+	        markColorInfo = JSON.parse(JSON.stringify(color));
 	        elements.forEach(function (el, i) {
 	          if (el.getContext) {
 	            var ctx = el.getContext('2d');
@@ -1122,6 +1124,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              }
 	              color = gradient;
 	            }
+	            info.color = markColorInfo;
 	            ctx.fillStyle = color;
 	
 	            // Translate the canvas position to the origin coordinate of where
@@ -1219,7 +1222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	
 	      /* Help function to updateGrid */
-	      var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item) {
+	      var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, color) {
 	        if (x >= ngx || y >= ngy || x < 0 || y < 0) {
 	          return;
 	        }
@@ -1232,7 +1235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (interactive) {
-	          infoGrid[x][y] = { item: item, dimension: dimension };
+	          infoGrid[x][y] = { item: item, dimension: dimension, color: color };
 	        }
 	      };
 	
@@ -1268,7 +1271,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            continue;
 	          }
 	
-	          fillGridAt(px, py, drawMask, dimension, item);
+	          fillGridAt(px, py, drawMask, dimension, item, info.color);
 	        }
 	
 	        if (drawMask) {
@@ -1331,7 +1334,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          // Actually put the text on the canvas
 	          drawText(gx, gy, info, word, weight, maxRadius - r, gxy[2], rotateDeg, attributes, i);
-	
 	          // Mark the spaces on the grid as filled
 	          updateGrid(gx, gy, gw, gh, info, item);
 	
