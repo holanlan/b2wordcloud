@@ -85,10 +85,28 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 当容器大小变化时，可调用此方法重新绘制
 
 e.g: 
-
+```javascript
 var wordCloud = new B2wordCloud(element, options)
 
 wordcloud.resize()
+```
+
+- dispatchAction
+
+发送事件，目前支持highlight和downplay
+
+e.g:
+```javascript
+var wordCloud = new B2wordCloud(element, options)
+
+wordcloud.dispatchAction({
+  type: 'highlight', // highlight或downplay
+  dataIndex: 0, // 高亮数据索引
+  keepAlive: true, // 高亮词是否唯一，false即同时只能高亮一个词
+})
+```
+
+
 
 ## 重要版本更新
 
@@ -107,3 +125,6 @@ wordcloud.resize()
 - renderer: 'div' 模式下，阴影改用filter: drop-shadow，阴影效果更佳
 - renderer: 'canvas' 模式下优化渐变色计算逻辑，效果更佳
 - 支持横向渐变与纵向渐变两种选项，详情见`color`配置项
+
+### v1.0.18
+- 新增方法 `dispatchAction`方法，详细用法见文档

@@ -233,6 +233,22 @@ export class B2wordcloud {
         }
         this._render()
     }
+    /**
+     * 
+     * @param {object} params 事件参数
+     *  
+     */
+    dispatchAction(params) {
+        switch (params.type) {
+            case 'highlight':
+                this._wordcloud2.highlight(params.dataIndex, params.keepAlive)
+                break;
+            case 'downplay':
+                this._wordcloud2.downplay(params.dataIndex, params.keepAlive)
+                break;
+        }
+        
+    }
 }
 
 

@@ -1,6 +1,6 @@
 {
   "name": "b2wordcloud",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "js wordcloud 词云图, 基于wordcloud2.js, 增强若干特性",
   "main": "dist/b2wordcloud.min.js",
   "scripts": {
