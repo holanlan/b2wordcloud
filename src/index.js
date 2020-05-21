@@ -192,7 +192,7 @@ export class B2wordcloud {
             ctx = _ctx.getContext('2d');
             ctx.drawImage(maskCanvasScaled, 0, 0);
         }
-        this._wordcloud2 = WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options)
+        this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options)
     }
     _fixWeightFactor(option) {
         option.maxFontSize = typeof option.maxFontSize === 'number' ? option.maxFontSize : 36

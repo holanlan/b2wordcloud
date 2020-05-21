@@ -217,8 +217,9 @@ if (!window.clearImmediate) {
       cursorWhenHover: 'pointer',
       mouseout: null
     };
-
-    var words = []
+    var _this = this
+    _this.words = []
+    _this.elements = elements
 
     if (options) {
       for (var key in options) {
@@ -719,7 +720,7 @@ if (!window.clearImmediate) {
       return true;
     };
 
-    var drawItem = function(item, index) {
+    _this.drawItem = function(item, index) {
       // Actually put the text on the canvas
       drawText(item.gx, item.gy, item.info, item.word, item.weight,
         item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
@@ -770,6 +771,11 @@ if (!window.clearImmediate) {
         // return sColorChange.join(',')
         // 或
         return 'rgba(' + sColorChange.join(',') + ',' + alpha + ')'
+      } else if (sColor.startsWith('rgba')) { 
+        return sColor.split(',').map(function(item, i) {
+          if (i === 3 ) { item = ' 0.2)' };
+          return item
+        }).join(',')
       } else {
         return sColor
       }
@@ -1117,7 +1123,7 @@ if (!window.clearImmediate) {
         if (!canFitText(gx, gy, gw, gh, info.occupied)) {
           return false;
         }
-        words.push({
+        _this.words.push({
           gx: gx,
           gy: gy,
           info: info,
@@ -1354,7 +1360,7 @@ if (!window.clearImmediate) {
         }
         escapeTime = (new Date()).getTime();
         var drawn = putWord(settings.list[i], i);
-        drawItem(words[i]);
+        _this.drawItem(_this.words[i]);
         var canceled = !sendEvent('wordclouddrawn', true, {
           item: settings.list[i], drawn: drawn });
         if (exceedTime() || canceled) {
@@ -1373,41 +1379,44 @@ if (!window.clearImmediate) {
     // All set, start the drawing
     start();
 
-    WordCloud.highlight = function(index, isKeepAlive) {
-      elements.forEach(function(el, i) {
-        if (el.getContext) {
-          el.getContext('2d').clearRect(0, 0, el.width, el.height);
-        } else {
-          el.innerHTML = ""
-        }
-        words.forEach(item => {
-          if (!isKeepAlive) {
-            item.highlight = false
-          }
-          if (item.i === index) {
-            item.highlight = true
-          }
-          drawItem(item)
-        })
-      })
-    }
-    WordCloud.downplay = function(index, isKeepAlive) {
-      elements.forEach(function(el, i) {
-        if (el.getContext) {
-          el.getContext('2d').clearRect(0, 0, el.width, el.height);
-        } else {
-          el.innerHTML = ""
-        }
-        words.forEach(item => {
-          if (item.i === index) {
-            item.highlight = false
-          }
-          drawItem(item)
-        })
-      })
-    }
-    return WordCloud
+    return this
   };
+
+  WordCloud.prototype.highlight = function(index, isKeepAlive) {
+    var _this = this
+    _this.elements.forEach(function(el, i) {
+      if (el.getContext) {
+        el.getContext('2d').clearRect(0, 0, el.width, el.height);
+      } else {
+        el.innerHTML = ""
+      }
+      _this.words.forEach(item => {
+        if (!isKeepAlive) {
+          item.highlight = false
+        }
+        if (item.i === index) {
+          item.highlight = true
+        }
+        _this.drawItem(item)
+      })
+    })
+  }
+  WordCloud.prototype.downplay = function(index, isKeepAlive) {
+    var _this = this
+    _this.elements.forEach(function(el, i) {
+      if (el.getContext) {
+        el.getContext('2d').clearRect(0, 0, el.width, el.height);
+      } else {
+        el.innerHTML = ""
+      }
+      _this.words.forEach(item => {
+        if (item.i === index) {
+          item.highlight = false
+        }
+        _this.drawItem(item)
+      })
+    })
+  }
 
   WordCloud.isSupported = isSupported;
   WordCloud.minFontSize = minFontSize;

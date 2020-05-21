@@ -273,7 +273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                ctx = _ctx.getContext('2d');
 	                ctx.drawImage(maskCanvasScaled, 0, 0);
 	            }
-	            this._wordcloud2 = WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options);
+	            this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options);
 	        }
 	    }, {
 	        key: '_fixWeightFactor',
@@ -561,8 +561,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        cursorWhenHover: 'pointer',
 	        mouseout: null
 	      };
-	
-	      var words = [];
+	      var _this = this;
+	      _this.words = [];
+	      _this.elements = elements;
 	
 	      if (options) {
 	        for (var key in options) {
@@ -1031,7 +1032,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return true;
 	      };
 	
-	      var drawItem = function drawItem(item, index) {
+	      _this.drawItem = function (item, index) {
 	        // Actually put the text on the canvas
 	        drawText(item.gx, item.gy, item.info, item.word, item.weight, item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
 	        // Mark the spaces on the grid as filled
@@ -1083,6 +1084,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	          // return sColorChange.join(',')
 	          // 或
 	          return 'rgba(' + sColorChange.join(',') + ',' + alpha + ')';
+	        } else if (sColor.startsWith('rgba')) {
+	          return sColor.split(',').map(function (item, i) {
+	            if (i === 3) {
+	              item = ' 0.2)';
+	            };
+	            return item;
+	          }).join(',');
 	        } else {
 	          return sColor;
 	        }
@@ -1401,7 +1409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
 	            return false;
 	          }
-	          words.push({
+	          _this.words.push({
 	            gx: gx,
 	            gy: gy,
 	            info: info,
@@ -1634,7 +1642,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          escapeTime = new Date().getTime();
 	          var drawn = putWord(settings.list[i], i);
-	          drawItem(words[i]);
+	          _this.drawItem(_this.words[i]);
 	          var canceled = !sendEvent('wordclouddrawn', true, {
 	            item: settings.list[i], drawn: drawn });
 	          if (exceedTime() || canceled) {
@@ -1653,40 +1661,43 @@ return /******/ (function(modules) { // webpackBootstrap
 	      // All set, start the drawing
 	      start();
 	
-	      WordCloud.highlight = function (index, isKeepAlive) {
-	        elements.forEach(function (el, i) {
-	          if (el.getContext) {
-	            el.getContext('2d').clearRect(0, 0, el.width, el.height);
-	          } else {
-	            el.innerHTML = "";
+	      return this;
+	    };
+	
+	    WordCloud.prototype.highlight = function (index, isKeepAlive) {
+	      var _this = this;
+	      _this.elements.forEach(function (el, i) {
+	        if (el.getContext) {
+	          el.getContext('2d').clearRect(0, 0, el.width, el.height);
+	        } else {
+	          el.innerHTML = "";
+	        }
+	        _this.words.forEach(function (item) {
+	          if (!isKeepAlive) {
+	            item.highlight = false;
 	          }
-	          words.forEach(function (item) {
-	            if (!isKeepAlive) {
-	              item.highlight = false;
-	            }
-	            if (item.i === index) {
-	              item.highlight = true;
-	            }
-	            drawItem(item);
-	          });
-	        });
-	      };
-	      WordCloud.downplay = function (index, isKeepAlive) {
-	        elements.forEach(function (el, i) {
-	          if (el.getContext) {
-	            el.getContext('2d').clearRect(0, 0, el.width, el.height);
-	          } else {
-	            el.innerHTML = "";
+	          if (item.i === index) {
+	            item.highlight = true;
 	          }
-	          words.forEach(function (item) {
-	            if (item.i === index) {
-	              item.highlight = false;
-	            }
-	            drawItem(item);
-	          });
+	          _this.drawItem(item);
 	        });
-	      };
-	      return WordCloud;
+	      });
+	    };
+	    WordCloud.prototype.downplay = function (index, isKeepAlive) {
+	      var _this = this;
+	      _this.elements.forEach(function (el, i) {
+	        if (el.getContext) {
+	          el.getContext('2d').clearRect(0, 0, el.width, el.height);
+	        } else {
+	          el.innerHTML = "";
+	        }
+	        _this.words.forEach(function (item) {
+	          if (item.i === index) {
+	            item.highlight = false;
+	          }
+	          _this.drawItem(item);
+	        });
+	      });
 	    };
 	
 	    WordCloud.isSupported = isSupported;
