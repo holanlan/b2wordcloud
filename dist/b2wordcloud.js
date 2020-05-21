@@ -1171,7 +1171,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  bggradient.addColorStop(i / (itemColor.length - 2), colorRgba(itemColor[itemColor.length - 2 - i], 0.2));
 	                }
 	              }
-	              roundRect(ctx, info.fillTextOffsetX * mu - 2 * 1 / mu, info.fillTextOffsetY * mu - 2 * 1 / mu, ctx.measureText(word).width + 4 * 1 / mu, fontSize + 4 * 1 / mu, 4 * 1 / mu, isItemColorArray ? bggradient : colorRgba(itemColor, 0.2), isItemColorArray ? itemColor[0] : itemColor);
+	              roundRect(ctx, info.fillTextOffsetX * mu - 2 * 1 / mu, info.fillTextOffsetY * mu - 2 * 1 / mu, ctx.measureText(word).width + 4 * 1 / mu, fontSize + 4 * 1 / mu, 4 * 1 / mu, isItemColorArray ? bggradient : colorRgba(itemColor ? itemColor : color, 0.2), isItemColorArray ? itemColor[0] : itemColor ? itemColor : color);
 	            }
 	            ctx.shadowColor = options.shadowColor;
 	            ctx.shadowOffsetX = options.shadowOffsetX;

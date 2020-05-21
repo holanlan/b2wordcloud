@@ -37,12 +37,15 @@
             shadowOffsetX: 2,
             shadowOffsetY: 2,
             shadowBlur: 5,
-            color: [
-                ['#00fbf2', '#001e80', 1],
-                ['#b0e8ff','#0278fe'],
-                '#f00',
-                '#ff0'
-            ],
+            // color: [
+            //     ['#00fbf2', '#001e80', 1],
+            //     ['#b0e8ff','#0278fe'],
+            //     '#f00',
+            //     '#ff0'
+            // ],
+            color: function () {
+                return '#f00'
+            },
             click: function(a, b, c, d, index) {
                 wordCloud.dispatchAction({
                     type: mark === index ? 'downplay' : 'highlight',
