@@ -59,38 +59,7 @@
                 }
             }
         })
-        var wordCloud2 = new B2wordcloud(document.getElementById("chart2"), {
-            // renderer: 'div',
-            list: [['foo', 36], ['中文', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46]],
-            tooltip: {
-                formatter: function(item) {
-                    return '<div>' + item[0] + '</div>' + '<div>' + item[1] + '</div>'
-                }
-            },
-            shadowColor: 'rgba(0,0,0,0.9)',
-            shadowOffsetX: 2,
-            shadowOffsetY: 2,
-            shadowBlur: 5,
-            color: [
-                ["#00bcbe", "rgba(205, 224, 115, 1)", 1],
-                ['#00fbf2', '#001e80', 1],
-                ['#b0e8ff','#0278fe'],
-                '#f00',
-                '#ff0'
-            ],
-            click: function(a, b, c, d, index) {
-                wordCloud2.dispatchAction({
-                    type: mark === index ? 'downplay' : 'highlight',
-                    dataIndex: index,
-                    keepAlive: true
-                })
-                if (mark != index) { 
-                    mark = index
-                } else {
-                    mark = -1
-                }
-            }
-        })
+        
         
         window.addEventListener('resize', function() {
             wordCloud.resize()

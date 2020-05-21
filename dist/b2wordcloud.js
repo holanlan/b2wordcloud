@@ -838,7 +838,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // calculate the acutal font size
 	        // fontSize === 0 means weightFactor function wants the text skipped,
 	        // and size < minSize means we cannot draw the text.
-	        var debug = true;
+	        var debug = false;
 	        var fontSize = settings.weightFactor(weight);
 	        if (fontSize <= settings.minSize) {
 	          return false;
