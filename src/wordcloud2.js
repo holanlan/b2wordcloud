@@ -1074,14 +1074,16 @@ if (!window.clearImmediate) {
        calculate it's size and determine it's position, and actually
        put it on the canvas. */
     var putWord = function putWord(item, i) {
-      var word, weight, attributes;
+      var word, weight, attributes, highlight;
       if (Array.isArray(item)) {
         word = item[0];
         weight = item[1];
+        highlight = item[2]
       } else {
         word = item.word;
         weight = item.weight;
         attributes = item.attributes;
+        highlight = item.highlight
       }
       var rotateDeg = getRotateDeg();
 
@@ -1134,7 +1136,7 @@ if (!window.clearImmediate) {
           attributes: attributes,
           item: item,
           i: i,
-          highlight: false
+          highlight: highlight
         })
         // // Actually put the text on the canvas
         // drawText(gx, gy, info, word, weight,
