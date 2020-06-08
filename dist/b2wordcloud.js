@@ -293,13 +293,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	
-	                //用y=ax^r+b公式确定字体大小
+	                // //用y=ax^r+b公式确定字体大小
+	                // if(max > min){
+	                //     var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
+	                //     var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
+	                //     var b = option.maxFontSize - a * Math.pow(max, r)
+	                //     option.weightFactor = function (size) {
+	                //         return Math.ceil(a * Math.pow(size, r) + b)
+	                //     }
+	                // }else{
+	                //     option.weightFactor = function (size) {
+	                //         return option.minFontSize
+	                //     }
+	                // }
+	
+	                //使用linerMap计算词云大小
 	                if (max > min) {
-	                    var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
-	                    var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
-	                    var b = option.maxFontSize - a * Math.pow(max, r);
-	                    option.weightFactor = function (size) {
-	                        return Math.ceil(a * Math.pow(size, r) + b);
+	                    option.weightFactor = function (val) {
+	                        var subDomain = max - min;
+	                        var subRange = option.maxFontSize - option.minFontSize;
+	                        if (subDomain === 0) {
+	                            return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+	                        }
+	                        if (val === min) {
+	                            return option.minFontSize;
+	                        }
+	
+	                        if (val === max) {
+	                            return option.maxFontSize;
+	                        }
+	                        return (val - min) / subDomain * subRange + option.minFontSize;
 	                    };
 	                } else {
 	                    option.weightFactor = function (size) {
