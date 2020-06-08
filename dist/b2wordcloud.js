@@ -1056,6 +1056,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	
 	      _this.drawItem = function (item, index) {
+	        if (!item) {
+	          return;
+	        }
 	        // Actually put the text on the canvas
 	        drawText(item.gx, item.gy, item.info, item.word, item.weight, item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
 	        // Mark the spaces on the grid as filled
@@ -1428,7 +1431,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var gy = Math.floor(gxy[1] - info.gh / 2);
 	          var gw = info.gw;
 	          var gh = info.gh;
-	
 	          // If we cannot fit the text at this position, return false
 	          // and go to the next position.
 	          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
