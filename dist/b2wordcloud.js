@@ -1436,7 +1436,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
 	            return false;
 	          }
-	          _this.words.push({
+	          var item = {
 	            gx: gx,
 	            gy: gy,
 	            info: info,
@@ -1448,7 +1448,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            item: item,
 	            i: i,
 	            highlight: highlight
-	          });
+	          };
+	          _this.words.push(item);
 	          // // Actually put the text on the canvas
 	          // drawText(gx, gy, info, word, weight,
 	          //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
@@ -1456,11 +1457,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	          // updateGrid(gx, gy, gw, gh, info, item);
 	
 	          // Return true so some() will stop and also return true.
-	          return true;
+	          return item;
 	        };
 	        while (r--) {
 	          var points = getPointsAtRadius(maxRadius - r);
-	
 	          if (settings.shuffle) {
 	            points = [].concat(points);
 	            shuffleArray(points);
@@ -1470,11 +1470,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	          // array.some() will stop and return true
 	          // when putWordAtPoint() returns true.
 	          // If all the points returns false, array.some() returns false.
-	          var drawn = points.some(tryToPutWordAtPoint);
+	          var drawn;
+	          for (var i = 0; i < points.length; i++) {
+	            var item = tryToPutWordAtPoint(points[i]);
+	            if (item) {
+	              drawn = item;
+	              break;
+	            }
+	          }
 	
+	          // var drawn = points.some(tryToPutWordAtPoint);
 	          if (drawn) {
 	            // leave putWord() and return true
-	            return true;
+	            return drawn;
 	          }
 	        }
 	        // we tried all distances but text won't fit, return false
@@ -1669,9 +1677,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          escapeTime = new Date().getTime();
 	          var drawn = putWord(settings.list[i], i);
-	          _this.drawItem(_this.words[i]);
+	          _this.drawItem(drawn);
 	          var canceled = !sendEvent('wordclouddrawn', true, {
-	            item: settings.list[i], drawn: drawn });
+	            item: settings.list[i], drawn: drawn && true });
 	          if (exceedTime() || canceled) {
 	            stoppingFunction(timer);
 	            settings.abort();
