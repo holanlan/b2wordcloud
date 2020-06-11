@@ -45,6 +45,9 @@
             //     '#f00',
             //     '#ff0'
             // ],
+            hover: function(item) {
+                console.log(item)
+            },
             color: function(){ return [["rgba(0, 188, 190, 1)", "rgba(176, 239, 173, 1)", 0]] },
             click: function(a, b, c, index) {
                 wordCloud.dispatchAction({

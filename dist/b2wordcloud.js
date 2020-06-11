@@ -1474,7 +1474,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          var drawn;
 	          for (var i = 0; i < points.length; i++) {
 	            var drawnItem = tryToPutWordAtPoint(points[i], index);
-	            if (item) {
+	            if (drawnItem) {
 	              drawn = drawnItem;
 	              break;
 	            }
@@ -1534,7 +1534,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // Maxium radius to look for space
 	        maxRadius = Math.floor(Math.sqrt(ngx * ngx + ngy * ngy));
-	
 	        /* Clear the canvas only if the clearCanvas is set,
 	           if not, update the grid to the current canvas state */
 	        grid = [];
