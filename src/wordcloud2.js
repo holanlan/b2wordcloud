@@ -441,7 +441,7 @@ if (!window.clearImmediate) {
       if (!info) {
         return;
       }
-      settings.click(info.item, info.dimension, evt, info.color, info.index);
+      settings.click(info.item, info.dimension, evt, info.index);
       evt.preventDefault();
     };
 
@@ -723,7 +723,7 @@ if (!window.clearImmediate) {
     _this.drawItem = function(item, index) {
       if (!item) {
         return
-      }
+      }      
       // Actually put the text on the canvas
       drawText(item.gx, item.gy, item.info, item.word, item.weight,
         item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
@@ -860,7 +860,6 @@ if (!window.clearImmediate) {
           }
           
           
-          info.color = markColorInfo
           ctx.fillStyle = color;
           
           // Translate the canvas position to the origin coordinate of where
@@ -1016,7 +1015,7 @@ if (!window.clearImmediate) {
     };
 
     /* Help function to updateGrid */
-    var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, color, index) {
+    var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, index) {
       if (x >= ngx || y >= ngy || x < 0 || y < 0) {
         return;
       }
@@ -1029,7 +1028,7 @@ if (!window.clearImmediate) {
       }
 
       if (interactive) {
-        infoGrid[x][y] = { item: item, dimension: dimension, color: color, index: index };
+        infoGrid[x][y] = { item: item, dimension: dimension, index: index };
       }
     };
 
@@ -1065,7 +1064,7 @@ if (!window.clearImmediate) {
           continue;
         }
 
-        fillGridAt(px, py, drawMask, dimension, item, info.color, index);
+        fillGridAt(px, py, drawMask, dimension, item, index);
       }
 
       if (drawMask) {
@@ -1077,7 +1076,7 @@ if (!window.clearImmediate) {
        calculate it's size and determine it's position, and actually
        put it on the canvas. */
     var putWord = function putWord(item, i) {
-      var word, weight, attributes, highlight;
+      var word, weight, attributes, highlight, index = i;
       if (Array.isArray(item)) {
         word = item[0];
         weight = item[1];
@@ -1116,8 +1115,7 @@ if (!window.clearImmediate) {
       // Determine the position to put the text by
       // start looking for the nearest points
       var r = maxRadius + 1;
-
-      var tryToPutWordAtPoint = function(gxy) {
+      var tryToPutWordAtPoint = function(gxy, index) {
         var gx = Math.floor(gxy[0] - info.gw / 2);
         var gy = Math.floor(gxy[1] - info.gh / 2);
         var gw = info.gw;
@@ -1127,7 +1125,7 @@ if (!window.clearImmediate) {
         if (!canFitText(gx, gy, gw, gh, info.occupied)) {
           return false;
         }
-        var item = {
+        var wordItem = {
           gx: gx,
           gy: gy,
           info: info,
@@ -1137,18 +1135,17 @@ if (!window.clearImmediate) {
           theta: gxy[2],
           attributes: attributes,
           item: item,
-          i: i,
+          i: index,
           highlight: highlight
         }
-        _this.words.push(item)
+        _this.words.push(wordItem)
         // // Actually put the text on the canvas
         // drawText(gx, gy, info, word, weight,
         //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
         // // Mark the spaces on the grid as filled
         // updateGrid(gx, gy, gw, gh, info, item);
-
         // Return true so some() will stop and also return true.
-        return item;
+        return wordItem;
       };
       while (r--) {
         var points = getPointsAtRadius(maxRadius - r);
@@ -1163,9 +1160,9 @@ if (!window.clearImmediate) {
         // If all the points returns false, array.some() returns false.
         var drawn;
         for (var i = 0; i < points.length; i++) {
-          var item = tryToPutWordAtPoint(points[i])
+          var drawnItem = tryToPutWordAtPoint(points[i], index)
           if (item) {
-            drawn = item
+            drawn = drawnItem
             break
           }
         }

@@ -793,7 +793,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!info) {
 	          return;
 	        }
-	        settings.click(info.item, info.dimension, evt, info.color, info.index);
+	        settings.click(info.item, info.dimension, evt, info.index);
 	        evt.preventDefault();
 	      };
 	
@@ -1191,7 +1191,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	              color = gradient;
 	            }
 	
-	            info.color = markColorInfo;
 	            ctx.fillStyle = color;
 	
 	            // Translate the canvas position to the origin coordinate of where
@@ -1326,7 +1325,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	
 	      /* Help function to updateGrid */
-	      var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, color, index) {
+	      var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, index) {
 	        if (x >= ngx || y >= ngy || x < 0 || y < 0) {
 	          return;
 	        }
@@ -1339,7 +1338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (interactive) {
-	          infoGrid[x][y] = { item: item, dimension: dimension, color: color, index: index };
+	          infoGrid[x][y] = { item: item, dimension: dimension, index: index };
 	        }
 	      };
 	
@@ -1375,7 +1374,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            continue;
 	          }
 	
-	          fillGridAt(px, py, drawMask, dimension, item, info.color, index);
+	          fillGridAt(px, py, drawMask, dimension, item, index);
 	        }
 	
 	        if (drawMask) {
@@ -1387,7 +1386,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	         calculate it's size and determine it's position, and actually
 	         put it on the canvas. */
 	      var putWord = function putWord(item, i) {
-	        var word, weight, attributes, highlight;
+	        var word,
+	            weight,
+	            attributes,
+	            highlight,
+	            index = i;
 	        if (Array.isArray(item)) {
 	          word = item[0];
 	          weight = item[1];
@@ -1425,8 +1428,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Determine the position to put the text by
 	        // start looking for the nearest points
 	        var r = maxRadius + 1;
-	
-	        var tryToPutWordAtPoint = function tryToPutWordAtPoint(gxy) {
+	        var tryToPutWordAtPoint = function tryToPutWordAtPoint(gxy, index) {
 	          var gx = Math.floor(gxy[0] - info.gw / 2);
 	          var gy = Math.floor(gxy[1] - info.gh / 2);
 	          var gw = info.gw;
@@ -1436,7 +1438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
 	            return false;
 	          }
-	          var item = {
+	          var wordItem = {
 	            gx: gx,
 	            gy: gy,
 	            info: info,
@@ -1446,18 +1448,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	            theta: gxy[2],
 	            attributes: attributes,
 	            item: item,
-	            i: i,
+	            i: index,
 	            highlight: highlight
 	          };
-	          _this.words.push(item);
+	          _this.words.push(wordItem);
 	          // // Actually put the text on the canvas
 	          // drawText(gx, gy, info, word, weight,
 	          //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
 	          // // Mark the spaces on the grid as filled
 	          // updateGrid(gx, gy, gw, gh, info, item);
-	
 	          // Return true so some() will stop and also return true.
-	          return item;
+	          return wordItem;
 	        };
 	        while (r--) {
 	          var points = getPointsAtRadius(maxRadius - r);
@@ -1472,9 +1473,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          // If all the points returns false, array.some() returns false.
 	          var drawn;
 	          for (var i = 0; i < points.length; i++) {
-	            var item = tryToPutWordAtPoint(points[i]);
+	            var drawnItem = tryToPutWordAtPoint(points[i], index);
 	            if (item) {
-	              drawn = item;
+	              drawn = drawnItem;
 	              break;
 	            }
 	          }

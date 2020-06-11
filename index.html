@@ -46,7 +46,7 @@
             //     '#ff0'
             // ],
             color: function(){ return [["rgba(0, 188, 190, 1)", "rgba(176, 239, 173, 1)", 0]] },
-            click: function(a, b, c, d, index) {
+            click: function(a, b, c, index) {
                 wordCloud.dispatchAction({
                     type: mark === index ? 'downplay' : 'highlight',
                     dataIndex: index,
