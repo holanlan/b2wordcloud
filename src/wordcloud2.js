@@ -156,7 +156,7 @@ if (!window.clearImmediate) {
     return arr;
   };
 
-  var WordCloud = function WordCloud(elements, options) {
+  var WordCloud = function WordCloud(elements, options, maskCanvas) {
     if (!isSupported) {
       return;
     }
@@ -1199,7 +1199,7 @@ if (!window.clearImmediate) {
     var start = function start() {
       // For dimensions, clearCanvas etc.,
       // we only care about the first element.
-      var canvas = elements[0];
+      var canvas = maskCanvas;
 
       if (canvas.getContext) {
         ngx = Math.ceil(canvas.width / g);
@@ -1228,19 +1228,20 @@ if (!window.clearImmediate) {
       grid = [];
 
       var gx, gy, i;
+      elements.forEach(function(el) {
+        if (el.getContext) {
+          var ctx = el.getContext('2d');
+          ctx.fillStyle = settings.backgroundColor;
+          ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
+          ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
+        } else {
+          el.textContent = '';
+          el.style.backgroundColor = settings.backgroundColor;
+          el.style.position = 'relative';
+        }
+      });
       if (!canvas.getContext || settings.clearCanvas) {
-        elements.forEach(function(el) {
-          if (el.getContext) {
-            var ctx = el.getContext('2d');
-            ctx.fillStyle = settings.backgroundColor;
-            ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
-            ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
-          } else {
-            el.textContent = '';
-            el.style.backgroundColor = settings.backgroundColor;
-            el.style.position = 'relative';
-          }
-        });
+        
 
         /* fill the grid with empty state */
         gx = ngx;
@@ -1256,7 +1257,8 @@ if (!window.clearImmediate) {
            another canvas and fill the specified background color. */
         var bctx = document.createElement('canvas').getContext('2d');
 
-        bctx.fillStyle = settings.backgroundColor;
+        // bctx.fillStyle = settings.backgroundColor;
+        bctx.fillStyle = '#ffffff'
         bctx.fillRect(0, 0, 1, 1);
         var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 
