@@ -131,6 +131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._wordcloud2 = null;
 	        this._maskCanvas = null;
 	        this._tempCanvas = null;
+	        this._maskImg = null;
 	        this._init();
 	    }
 	
@@ -249,89 +250,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	            img.crossOrigin = "Anonymous";
 	            img.src = this._options.maskImage;
 	            img.onload = function () {
-	                // const canvas = this._options.renderer == 'canvas' ? this._container : this._tempCanvas
-	                var canvas = _this2._maskCanvas;
-	                var ctx = canvas.getContext('2d');
-	                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-	                updateCanvasMask(canvas);
-	
-	                // this._maskCanvas = document.createElement('canvas');
-	                // this._maskCanvas.width = img.width;
-	                // this._maskCanvas.height = img.height;
-	                // var ctx = this._maskCanvas.getContext('2d');
-	                // ctx.drawImage(img, 0, 0, img.width, img.height);
-	                // var imageData = ctx.getImageData(
-	                // 0, 0, this._maskCanvas.width, this._maskCanvas.height);
-	                // var newImageData = ctx.createImageData(imageData);
-	                // for (var i = 0; i < imageData.data.length; i += 4) {
-	                //     var tone = imageData.data[i] +
-	                //         imageData.data[i + 1] +
-	                //         imageData.data[i + 2];
-	                //     var alpha = imageData.data[i + 3];
-	
-	                //     if (alpha < 128 || tone > 128 * 3) {
-	                //         // Area not to draw
-	                //         newImageData.data[i] =
-	                //         newImageData.data[i + 1] =
-	                //         newImageData.data[i + 2] = 255;
-	                //         newImageData.data[i + 3] = 0;
-	                //     } else {
-	                //         // Area to draw
-	                //         newImageData.data[i] =
-	                //         newImageData.data[i + 1] =
-	                //         newImageData.data[i + 2] = 0;
-	                //         newImageData.data[i + 3] = 255;
-	                //     }
-	                // }
-	                // ctx.putImageData(newImageData, 0, 0);
+	                _this2._maskImg = img;
 	                _this2._render();
 	            };
 	        }
 	    }, {
 	        key: '_render',
 	        value: function _render() {
-	            // this._options.clearCanvas = false
-	            // if (this._maskCanvas) {
-	            //     // this._options.clearCanvas = false
-	            //     /* Determine bgPixel by creating
-	            //         another canvas and fill the specified background color. */
-	            //     var bctx = document.createElement('canvas').getContext('2d');
+	            var isResize = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 	
-	            //     bctx.fillStyle = this._options.backgroundColor || '#fff';
-	            //     bctx.fillRect(0, 0, 1, 1);
-	            //     var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
-	
-	            //     var maskCanvasScaled = document.createElement('canvas');
-	            //     maskCanvasScaled.width = this._options.renderer === 'canvas' ? this._container.width : this._container.clientWidth;
-	            //     maskCanvasScaled.height = this._options.renderer === 'canvas' ? this._container.height : this._container.clientHeight;
-	            //     var ctx = maskCanvasScaled.getContext('2d');
-	
-	            //     ctx.drawImage(this._maskCanvas,
-	            //         0, 0, this._maskCanvas.width, this._maskCanvas.height,
-	            //         0, 0, maskCanvasScaled.width, maskCanvasScaled.height);
-	
-	            //     var imageData = ctx.getImageData(0, 0, maskCanvasScaled.width, maskCanvasScaled.height);
-	            //     var newImageData = ctx.createImageData(imageData);
-	            //     for (var i = 0; i < imageData.data.length; i += 4) {
-	            //         if (imageData.data[i + 3] > 128) {
-	            //             newImageData.data[i] = bgPixel[0];
-	            //             newImageData.data[i + 1] = bgPixel[1];
-	            //             newImageData.data[i + 2] = bgPixel[2];
-	            //             newImageData.data[i + 3] = bgPixel[3];
-	            //         } else {
-	            //             // This color must not be the same w/ the bgPixel.
-	            //             newImageData.data[i] = bgPixel[0];
-	            //             newImageData.data[i + 1] = bgPixel[1];
-	            //             newImageData.data[i + 2] = bgPixel[2];
-	            //             newImageData.data[i + 3] = bgPixel[3] ? (bgPixel[3] - 1) : 0;
-	            //         }
-	            //     }
-	            //     ctx.putImageData(newImageData, 0, 0);
-	            //     var _ctx = this._tempCanvas ? this._tempCanvas : this._container
-	            //     ctx = _ctx.getContext('2d');
-	            //     ctx.drawImage(maskCanvasScaled, 0, 0);
-	            // }
-	            this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options, this._maskCanvas);
+	            if (this._maskImg) {
+	                var canvas = this._maskCanvas;
+	                var ctx = canvas.getContext('2d');
+	                ctx.drawImage(this._maskImg, 0, 0, canvas.width, canvas.height);
+	                updateCanvasMask(canvas);
+	            }
+	            this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options, this._maskCanvas, isResize);
 	        }
 	    }, {
 	        key: '_fixWeightFactor',
@@ -396,6 +330,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	                this._setCanvasSize();
 	            } else if (this._options.renderer === 'div') {
 	                this._container.textContent = '';
+	            }
+	            if (this._maskCanvas) {
+	                this._setCanvasSize(this._maskCanvas);
 	            }
 	            this._render();
 	        }
