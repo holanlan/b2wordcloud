@@ -111,6 +111,12 @@ wordcloud.dispatchAction({
 
 ## 重要版本更新
 
+### v2.0.0
+- 字符大小逻辑重构
+- 图片形状逻辑重构
+- 支持词高亮
+- 新增方法 `dispatchAction`方法，详细用法见文档
+
 ### v1.0.14
 - 新增 `cursorWhenHover` 配置项
 
@@ -126,9 +132,3 @@ wordcloud.dispatchAction({
 - renderer: 'div' 模式下，阴影改用filter: drop-shadow，阴影效果更佳
 - renderer: 'canvas' 模式下优化渐变色计算逻辑，效果更佳
 - 支持横向渐变与纵向渐变两种选项，详情见`color`配置项
-
-### v2.0.0
-- 字符大小逻辑重构
-- 图片形状逻辑重构
-- 支持词高亮
-- 新增方法 `dispatchAction`方法，详细用法见文档
