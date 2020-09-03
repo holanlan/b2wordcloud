@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>形状词云渲染</title>
+    <title>形状词云渲染，点击高亮</title>
     <style>
         body, html {
             width: 100%;
@@ -12,8 +12,8 @@
             margin: 0;
         }
         .test, #chart {
-            width: 1100px;
-            height: 770px;
+            width: 100%;
+            height: 100%;
         }
         body {
             background-color: #fff;
@@ -385,16 +385,25 @@
                 ['#7dc1ff', '#366af4'],
             ],
             drawOutOfBound: false,
+            maxFontSize: 32,
+            minFontSize: 16,
             minRotation: -90,
             maxRotation: 90,
             rotationSteps: 45,
             gridSize: 2,
-            shadowOffsetX: 2,
-            shadowOffsetY: 2,
-            shadowBlur: 2,
-            shadowColor: 'rgba(0,0,0,0.8)',
-            maskImage: './src/logo.png',
-            backgroundColor: '#fff'
+            shadowOffsetX: 1,
+            shadowOffsetY: 1,
+            shadowBlur: 1,
+            shadowColor: 'rgba(0,0,0,0)',
+            maskImage: 'https://holanlan.github.io/b2wordcloud/src/logo.png',
+            backgroundColor: 'rgba(0,0,0,0)',
+            click: function(item, params, evet, index) {
+                wordCloud.dispatchAction({
+                    type: 'highlight', // highlight或downplay
+                    dataIndex: index, // 高亮数据索引
+                    keepAlive: true, // 高亮词是否唯一，false即同时只能高亮一个词
+                })
+            }
         })
         window.addEventListener('resize', function() {
             wordCloud.resize()

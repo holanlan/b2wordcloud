@@ -11,7 +11,7 @@
             height: 100%;
             position: relative;
         }
-        #chart {
+        #chart, #chart2 {
             width: 500px;
             height: 500px;
             margin: 0 auto
@@ -21,12 +21,14 @@
 <body>
     <div class="test">
         <div id="chart"></div>
+        <div id="chart2"></div>
     </div>
     <script src="dist/b2wordcloud.js"></script>
     <script>
+        var mark = 0;
         var wordCloud = new B2wordcloud(document.getElementById("chart"), {
             // renderer: 'div',
-            list: [['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46]],
+            list: [['foo', 36, true], ['中文', 62, true], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46],['foo', 36], ['bar', 62], ['foo3', 22], ['bar4', 36], ['bar5', 46]],
             tooltip: {
                 formatter: function(item) {
                     return '<div>' + item[0] + '</div>' + '<div>' + item[1] + '</div>'
@@ -36,17 +38,32 @@
             shadowOffsetX: 2,
             shadowOffsetY: 2,
             shadowBlur: 5,
-            color: [
-                ['#00fbf2', '#001e80', 1],
-                ['green', 'white'],
-                '#f00',
-                '#ff0'
-            ],
-            // color: '#f00',
-            // color: function () {
-            //     return '#ff0'
-            // }
+            // color: [
+            //     ["#00bcbe", "rgba(205, 224, 115, 1)", 1],
+            //     ['#00fbf2', '#001e80', 1],
+            //     ['#b0e8ff','#0278fe'],
+            //     '#f00',
+            //     '#ff0'
+            // ],
+            hover: function(item) {
+                console.log(item)
+            },
+            color: function(){ return [["rgba(0, 188, 190, 1)", "rgba(176, 239, 173, 1)", 0]] },
+            click: function(a, b, c, index) {
+                wordCloud.dispatchAction({
+                    type: mark === index ? 'downplay' : 'highlight',
+                    dataIndex: index,
+                    keepAlive: true
+                })
+                if (mark != index) { 
+                    mark = index
+                } else {
+                    mark = -1
+                }
+            }
         })
+        
+        
         window.addEventListener('resize', function() {
             wordCloud.resize()
         })

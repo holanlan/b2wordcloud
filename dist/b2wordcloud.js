@@ -73,6 +73,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return obj1;
 	}
 	
+	// https://github.com/timdream/wordcloud2.js/blob/c236bee60436e048949f9becc4f0f67bd832dc5c/index.js#L233
+	function updateCanvasMask(maskCanvas) {
+	    var ctx = maskCanvas.getContext('2d');
+	    var imageData = ctx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+	    var newImageData = ctx.createImageData(imageData);
+	    var toneSum = 0;
+	    var toneCnt = 0;
+	    for (var i = 0; i < imageData.data.length; i += 4) {
+	        var alpha = imageData.data[i + 3];
+	        if (alpha > 128) {
+	            var tone = imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
+	            toneSum += tone;
+	            ++toneCnt;
+	        }
+	    }
+	    var threshold = toneSum / toneCnt;
+	
+	    for (var i = 0; i < imageData.data.length; i += 4) {
+	        var tone = imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
+	        var alpha = imageData.data[i + 3];
+	
+	        if (alpha < 128 || tone > threshold) {
+	            // Area not to draw
+	            newImageData.data[i] = 0;
+	            newImageData.data[i + 1] = 0;
+	            newImageData.data[i + 2] = 0;
+	            newImageData.data[i + 3] = 0;
+	        } else {
+	            // Area to draw
+	            // The color must be same with backgroundColor
+	            newImageData.data[i] = 255;
+	            newImageData.data[i + 1] = 255;
+	            newImageData.data[i + 2] = 255;
+	            newImageData.data[i + 3] = 255;
+	        }
+	    }
+	    ctx.putImageData(newImageData, 0, 0);
+	}
+	
 	var B2wordcloud = exports.B2wordcloud = function () {
 	    function B2wordcloud(element, options) {
 	        _classCallCheck(this, B2wordcloud);
@@ -86,11 +125,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	            tooltip: {
 	                show: true,
 	                formatter: null
-	            }
+	            },
+	            clearCanvas: !options.maskImage
 	        }, options);
 	        this._wordcloud2 = null;
 	        this._maskCanvas = null;
 	        this._tempCanvas = null;
+	        this._maskImg = null;
 	        this._init();
 	    }
 	
@@ -103,6 +144,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_initContainer',
 	        value: function _initContainer() {
+	            this._maskCanvas = document.createElement('canvas');
+	            this._setCanvasSize(this._maskCanvas);
 	            if (this._options.renderer === 'div') {
 	                this._container = document.createElement('div');
 	                this._container.style.width = '100%';
@@ -150,6 +193,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var height = this._wrapper.clientHeight;
 	            target.width = width;
 	            target.height = height;
+	            target.style.width = width + 'px';
+	            target.style.height = height + 'px';
 	        }
 	    }, {
 	        key: '_setOptions',
@@ -207,73 +252,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	            img.crossOrigin = "Anonymous";
 	            img.src = this._options.maskImage;
 	            img.onload = function () {
-	                _this2._maskCanvas = document.createElement('canvas');
-	                _this2._maskCanvas.width = img.width;
-	                _this2._maskCanvas.height = img.height;
-	                var ctx = _this2._maskCanvas.getContext('2d');
-	                ctx.drawImage(img, 0, 0, img.width, img.height);
-	                var imageData = ctx.getImageData(0, 0, _this2._maskCanvas.width, _this2._maskCanvas.height);
-	                var newImageData = ctx.createImageData(imageData);
-	                for (var i = 0; i < imageData.data.length; i += 4) {
-	                    var tone = imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
-	                    var alpha = imageData.data[i + 3];
-	
-	                    if (alpha < 128 || tone > 128 * 3) {
-	                        // Area not to draw
-	                        newImageData.data[i] = newImageData.data[i + 1] = newImageData.data[i + 2] = 255;
-	                        newImageData.data[i + 3] = 0;
-	                    } else {
-	                        // Area to draw
-	                        newImageData.data[i] = newImageData.data[i + 1] = newImageData.data[i + 2] = 0;
-	                        newImageData.data[i + 3] = 255;
-	                    }
-	                }
-	                ctx.putImageData(newImageData, 0, 0);
+	                _this2._maskImg = img;
 	                _this2._render();
 	            };
 	        }
 	    }, {
 	        key: '_render',
 	        value: function _render() {
-	            if (this._maskCanvas) {
-	                this._options.clearCanvas = false;
-	                /* Determine bgPixel by creating
-	                    another canvas and fill the specified background color. */
-	                var bctx = document.createElement('canvas').getContext('2d');
+	            var isResize = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 	
-	                bctx.fillStyle = this._options.backgroundColor || '#fff';
-	                bctx.fillRect(0, 0, 1, 1);
-	                var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
-	
-	                var maskCanvasScaled = document.createElement('canvas');
-	                maskCanvasScaled.width = this._options.renderer === 'canvas' ? this._container.width : this._container.clientWidth;
-	                maskCanvasScaled.height = this._options.renderer === 'canvas' ? this._container.height : this._container.clientHeight;
-	                var ctx = maskCanvasScaled.getContext('2d');
-	
-	                ctx.drawImage(this._maskCanvas, 0, 0, this._maskCanvas.width, this._maskCanvas.height, 0, 0, maskCanvasScaled.width, maskCanvasScaled.height);
-	
-	                var imageData = ctx.getImageData(0, 0, maskCanvasScaled.width, maskCanvasScaled.height);
-	                var newImageData = ctx.createImageData(imageData);
-	                for (var i = 0; i < imageData.data.length; i += 4) {
-	                    if (imageData.data[i + 3] > 128) {
-	                        newImageData.data[i] = bgPixel[0];
-	                        newImageData.data[i + 1] = bgPixel[1];
-	                        newImageData.data[i + 2] = bgPixel[2];
-	                        newImageData.data[i + 3] = bgPixel[3];
-	                    } else {
-	                        // This color must not be the same w/ the bgPixel.
-	                        newImageData.data[i] = bgPixel[0];
-	                        newImageData.data[i + 1] = bgPixel[1];
-	                        newImageData.data[i + 2] = bgPixel[2];
-	                        newImageData.data[i + 3] = bgPixel[3] ? bgPixel[3] - 1 : 0;
-	                    }
-	                }
-	                ctx.putImageData(newImageData, 0, 0);
-	                var _ctx = this._tempCanvas ? this._tempCanvas : this._container;
-	                ctx = _ctx.getContext('2d');
-	                ctx.drawImage(maskCanvasScaled, 0, 0);
+	            if (this._maskImg) {
+	                var canvas = this._maskCanvas;
+	                var ctx = canvas.getContext('2d');
+	                ctx.drawImage(this._maskImg, 0, 0, canvas.width, canvas.height);
+	                updateCanvasMask(canvas);
 	            }
-	            this._wordcloud2 = WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options);
+	            this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options, this._maskCanvas, isResize);
 	        }
 	    }, {
 	        key: '_fixWeightFactor',
@@ -293,13 +287,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    }
 	                }
 	
-	                //用y=ax^r+b公式确定字体大小
+	                // //用y=ax^r+b公式确定字体大小
+	                // if(max > min){
+	                //     var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
+	                //     var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
+	                //     var b = option.maxFontSize - a * Math.pow(max, r)
+	                //     option.weightFactor = function (size) {
+	                //         return Math.ceil(a * Math.pow(size, r) + b)
+	                //     }
+	                // }else{
+	                //     option.weightFactor = function (size) {
+	                //         return option.minFontSize
+	                //     }
+	                // }
+	
+	                //使用linerMap计算词云大小
 	                if (max > min) {
-	                    var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
-	                    var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
-	                    var b = option.maxFontSize - a * Math.pow(max, r);
-	                    option.weightFactor = function (size) {
-	                        return Math.ceil(a * Math.pow(size, r) + b);
+	                    option.weightFactor = function (val) {
+	                        var subDomain = max - min;
+	                        var subRange = option.maxFontSize - option.minFontSize;
+	                        if (subDomain === 0) {
+	                            return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+	                        }
+	                        if (val === min) {
+	                            return option.minFontSize;
+	                        }
+	
+	                        if (val === max) {
+	                            return option.maxFontSize;
+	                        }
+	                        return (val - min) / subDomain * subRange + option.minFontSize;
 	                    };
 	                } else {
 	                    option.weightFactor = function (size) {
@@ -316,7 +333,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	            } else if (this._options.renderer === 'div') {
 	                this._container.textContent = '';
 	            }
+	            if (this._maskCanvas) {
+	                this._setCanvasSize(this._maskCanvas);
+	            }
 	            this._render();
+	        }
+	        /**
+	         * 
+	         * @param {object} params 事件参数
+	         *  
+	         */
+	
+	    }, {
+	        key: 'dispatchAction',
+	        value: function dispatchAction(params) {
+	            switch (params.type) {
+	                case 'highlight':
+	                    this._wordcloud2.highlight(params.dataIndex, params.keepAlive);
+	                    break;
+	                case 'downplay':
+	                    this._wordcloud2.downplay(params.dataIndex, params.keepAlive);
+	                    break;
+	            }
 	        }
 	    }]);
 	
@@ -330,6 +368,8 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 	
 	/*** IMPORTS FROM imports-loader ***/
 	(function () {
@@ -481,7 +521,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return arr;
 	    };
 	
-	    var WordCloud = function WordCloud(elements, options) {
+	    var WordCloud = function WordCloud(elements, options, maskCanvas) {
 	      if (!isSupported) {
 	        return;
 	      }
@@ -541,6 +581,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        cursorWhenHover: 'pointer',
 	        mouseout: null
 	      };
+	      var _this = this;
+	      _this.words = [];
+	      _this.elements = elements;
 	
 	      if (options) {
 	        for (var key in options) {
@@ -747,8 +790,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (!info) {
 	          return;
 	        }
-	
-	        settings.click(info.item, info.dimension, evt);
+	        settings.click(info.item, info.dimension, evt, info.index);
 	        evt.preventDefault();
 	      };
 	
@@ -1010,8 +1052,74 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return true;
 	      };
 	
+	      _this.drawItem = function (item, index) {
+	        if (!item) {
+	          return;
+	        }
+	        // Actually put the text on the canvas
+	        drawText(item.gx, item.gy, item.info, item.word, item.weight, item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
+	        // Mark the spaces on the grid as filled
+	
+	        updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
+	      };
+	
+	      var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor) {
+	        ctx.beginPath(0);
+	        ctx.save();
+	        ctx.moveTo(x + r, y);
+	        ctx.lineTo(x + width - r, y);
+	        ctx.arcTo(x + width, y, x + width, y + r, r);
+	        ctx.lineTo(x + width, y + height - r);
+	        ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
+	        ctx.lineTo(x + r, y + height);
+	        ctx.arcTo(x, y + height, x, y + height - r, r);
+	        ctx.lineTo(x, y + r);
+	        ctx.arcTo(x, y, x + r, y, r);
+	        ctx.closePath();
+	        ctx.fillStyle = bgColor; //若是给定了值就用给定的值否则给予默认值  
+	        ctx.fill();
+	        ctx.lineWidth = '1';
+	        ctx.strokeStyle = borderColor;
+	        ctx.stroke();
+	        ctx.restore();
+	      };
+	
+	      var colorRgba = function colorRgba(sHex) {
+	        var alpha = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+	
+	        // 十六进制颜色值的正则表达式
+	        var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/;
+	        /* 16进制颜色转为RGB格式 */
+	        var sColor = sHex.toLowerCase();
+	        if (sColor && reg.test(sColor)) {
+	          if (sColor.length === 4) {
+	            var sColorNew = '#';
+	            for (var i = 1; i < 4; i += 1) {
+	              sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1));
+	            }
+	            sColor = sColorNew;
+	          }
+	          //  处理六位的颜色值
+	          var sColorChange = [];
+	          for (var _i = 1; _i < 7; _i += 2) {
+	            sColorChange.push(parseInt('0x' + sColor.slice(_i, _i + 2)));
+	          }
+	          // return sColorChange.join(',')
+	          // 或
+	          return 'rgba(' + sColorChange.join(',') + ',' + alpha + ')';
+	        } else if (sColor.startsWith('rgba')) {
+	          return sColor.split(',').map(function (item, i) {
+	            if (i === 3) {
+	              item = ' 0.2)';
+	            };
+	            return item;
+	          }).join(',');
+	        } else {
+	          return sColor;
+	        }
+	      };
 	      /* Actually draw the text on the grid */
-	      var drawText = function drawText(gx, gy, info, word, weight, distance, theta, rotateDeg, attributes, index) {
+	      var drawText = function drawText(gx, gy, info, word, weight, distance, theta, rotateDeg, attributes, index, highlight) {
 	
 	        var fontSize = info.fontSize;
 	        var color;
@@ -1020,46 +1128,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	          color = settings.color;
 	        }
-	
-	        // if (Object.prototype.toString.call(color) === '[object Array]') {
-	        //   var itemColor = color[index%color.length], ctx, gradient;
-	
-	        //   elements.forEach(item => {
-	        //     if (item.getContext) {
-	        //       ctx = item.getContext('2d');
-	        //       // 支持阴影  
-	        //       ctx.shadowColor = options.shadowColor
-	        //       ctx.shadowOffsetX = options.shadowOffsetX;
-	        //       ctx.shadowOffsetY = options.shadowOffsetY;
-	        //       ctx.shadowBlur = options.shadowBlur;
-	
-	        //       // 支持渐变色 
-	        //       if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-	        //         if (Object.prototype.toString.call(itemColor[itemColor.length - 1]) !== '[object Number]') {
-	        //           itemColor[itemColor.length] = 0
-	        //         }
-	        //         var _type = itemColor[itemColor.length - 1]//渐变形式，默认为0，纵向渐变，1为横向渐变
-	        //         var _textWidth = ctx.measureText(word).width
-	        //         console.log(_textWidth)
-	        //         gradient = ctx.createLinearGradient(
-	        //           _type !== 0 ? -fontSize : 0, 
-	        //           _type === 0 ? -fontSize/2 : 0, 
-	        //           _type !== 0 ? _textWidth : 0, 
-	        //           _type === 0 ? fontSize/2 : 0);
-	        //         for (var i = 0; i < itemColor.length - 1; i++) {
-	        //           gradient.addColorStop(i/(itemColor.length - 2), itemColor[i]);
-	        //         }
-	        //         color = gradient
-	        //       } else {
-	        //         color = itemColor  
-	        //       }
-	        //     } else {
-	        //       color = itemColor
-	        //     }
-	        //   })
-	        // }
-	
-	
 	        // get fontWeight that will be used to set ctx.font and font style rule
 	        var fontWeight;
 	        if (getTextFontWeight) {
@@ -1087,7 +1155,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var itemColor,
 	            gradient,
 	            isItemColorArray = false,
-	            colorStartPosition = 'left';
+	            colorStartPosition = 'left',
+	            markColorInfo;
 	        if (Object.prototype.toString.call(color) === '[object Array]') {
 	          itemColor = color[index % color.length];
 	          color = itemColor;
@@ -1099,6 +1168,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          colorStartPosition = itemColor[itemColor.length - 1] === 0 ? 'top' : 'left';
 	        }
+	        markColorInfo = JSON.parse(JSON.stringify(color));
 	        elements.forEach(function (el, i) {
 	          if (el.getContext) {
 	            var ctx = el.getContext('2d');
@@ -1107,11 +1177,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ctx.save();
 	            ctx.scale(1 / mu, 1 / mu);
 	            // 支持阴影  
-	            ctx.shadowColor = options.shadowColor;
-	            ctx.shadowOffsetX = options.shadowOffsetX;
-	            ctx.shadowOffsetY = options.shadowOffsetY;
-	            ctx.shadowBlur = options.shadowBlur;
-	
 	            ctx.font = fontWeight + ' ' + (fontSize * mu).toString(10) + 'px ' + settings.fontFamily;
 	            // 支持渐变色 
 	            if (isItemColorArray) {
@@ -1122,12 +1187,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	              }
 	              color = gradient;
 	            }
+	
 	            ctx.fillStyle = color;
 	
 	            // Translate the canvas position to the origin coordinate of where
 	            // the text should be put.
 	            ctx.translate((gx + info.gw / 2) * g * mu, (gy + info.gh / 2) * g * mu);
-	
+	            if (highlight) {
+	              var bggradient;
+	              if (isItemColorArray) {
+	                bggradient = ctx.createLinearGradient(colorStartPosition !== 'top' ? -info.fillTextOffsetX * mu - 4 * 1 / mu / 2 : 0, colorStartPosition === 'top' ? -info.fillTextOffsetY * mu - 4 * 1 / mu / 2 : 0, colorStartPosition !== 'top' ? info.fillTextOffsetX * mu - 4 * 1 / mu / 2 : 0, colorStartPosition === 'top' ? info.fillTextOffsetY * mu - 4 * 1 / mu / 2 : 0);
+	                for (var i = 0; i < itemColor.length - 1; i++) {
+	                  bggradient.addColorStop(i / (itemColor.length - 2), colorRgba(itemColor[itemColor.length - 2 - i], 0.2));
+	                }
+	              }
+	              roundRect(ctx, info.fillTextOffsetX * mu - 2 * 1 / mu, info.fillTextOffsetY * mu - 2 * 1 / mu, ctx.measureText(word).width + 4 * 1 / mu, fontSize + 4 * 1 / mu, 4 * 1 / mu, isItemColorArray ? bggradient : colorRgba(itemColor ? itemColor : color, 0.2), isItemColorArray ? itemColor[0] : itemColor ? itemColor : color);
+	            }
+	            ctx.shadowColor = options.shadowColor;
+	            ctx.shadowOffsetX = options.shadowOffsetX;
+	            ctx.shadowOffsetY = options.shadowOffsetY;
+	            ctx.shadowBlur = options.shadowBlur;
 	            if (rotateDeg !== 0) {
 	              ctx.rotate(-rotateDeg);
 	            }
@@ -1139,7 +1218,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // Please read https://bugzil.la/737852#c6.
 	            // Here, we use textBaseline = 'middle' and draw the text at exactly
 	            // 0.5 * fontSize lower.
+	
 	            ctx.textBaseline = 'middle';
+	
 	            ctx.fillText(word, info.fillTextOffsetX * mu, (info.fillTextOffsetY + fontSize * 0.5) * mu);
 	
 	            // The below box is always matches how <span>s are positioned
@@ -1147,6 +1228,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	              info.fillTextWidth, info.fillTextHeight); */
 	
 	            // Restore the state.
+	
 	            ctx.restore();
 	          } else {
 	            if (isItemColorArray) {
@@ -1159,14 +1241,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (info.mu !== 1) {
 	              transformRule += 'translateX(-' + info.fillTextWidth / 4 + 'px) ' + 'scale(' + 1 / info.mu + ')';
 	            }
-	            var styleRules = {
+	            var styleRules = _defineProperty({
 	              'position': 'absolute',
 	              'display': 'block',
 	              'font': fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily,
 	              'left': (gx + info.gw / 2) * g + info.fillTextOffsetX + 'px',
 	              'top': (gy + info.gh / 2) * g + info.fillTextOffsetY + 'px',
 	              'width': info.fillTextWidth + 'px',
-	              'height': info.fillTextHeight + 'px',
+	              // 'height': info.fillTextHeight + 'px',
+	
+	              'box-sizing': 'border-box',
+	              'border-radius': '4px',
+	              'border-style': 'solid',
+	              'border-width': '1px',
+	              'border-color': 'transparent',
 	              'lineHeight': fontSize + 'px',
 	              'whiteSpace': 'nowrap',
 	              'transform': transformRule,
@@ -1174,11 +1262,31 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'msTransform': transformRule,
 	              'transformOrigin': '50% 40%',
 	              'webkitTransformOrigin': '50% 40%',
-	              'msTransformOrigin': '50% 40%',
+	              'msTransformOrigin': '50% 40%'
+	            }, 'font', fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily);
+	            var styleRules = {
+	              'display': 'block',
+	              'font': fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily,
 	              // 'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
 	              'filter': 'drop-shadow(' + options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor + ')'
 	              // 'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
 	            };
+	            if (highlight) {
+	              posStyle = Object.assign(posStyle, _defineProperty({
+	                'border-color': isItemColorArray ? color[0] : color,
+	                'border-style': 'solid',
+	                'border-width': '1px'
+	              }, 'border-color', isItemColorArray ? color[0] : color));
+	              if (isItemColorArray) {
+	                posStyle.backgroundImage = '-webkit-linear-gradient(' + colorStartPosition + ',' + color.filter(function (item, i) {
+	                  return i != color.length - 1;
+	                }).map(function (item) {
+	                  return colorRgba(item, 0.2);
+	                }).join(',') + ')';
+	              } else {
+	                posStyle.backgroundColor = colorRgba(color, 0.2);
+	              }
+	            }
 	            if (color) {
 	              if (Object.prototype.toString.call(color) === '[object Array]') {
 	                // DOM 渲染时增加渐变色
@@ -1210,7 +1318,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      };
 	
 	      /* Help function to updateGrid */
-	      var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item) {
+	      var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, index) {
 	        if (x >= ngx || y >= ngy || x < 0 || y < 0) {
 	          return;
 	        }
@@ -1223,13 +1331,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	
 	        if (interactive) {
-	          infoGrid[x][y] = { item: item, dimension: dimension };
+	          infoGrid[x][y] = { item: item, dimension: dimension, index: index };
 	        }
 	      };
 	
 	      /* Update the filling information of the given space with occupied points.
 	         Draw the mask on the canvas if necessary. */
-	      var updateGrid = function updateGrid(gx, gy, gw, gh, info, item) {
+	      var updateGrid = function updateGrid(gx, gy, gw, gh, info, item, index) {
 	        var occupied = info.occupied;
 	        var drawMask = settings.drawMask;
 	        var ctx;
@@ -1259,7 +1367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            continue;
 	          }
 	
-	          fillGridAt(px, py, drawMask, dimension, item);
+	          fillGridAt(px, py, drawMask, dimension, item, index);
 	        }
 	
 	        if (drawMask) {
@@ -1271,14 +1379,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	         calculate it's size and determine it's position, and actually
 	         put it on the canvas. */
 	      var putWord = function putWord(item, i) {
-	        var word, weight, attributes;
+	        var word,
+	            weight,
+	            attributes,
+	            highlight,
+	            index = i;
 	        if (Array.isArray(item)) {
 	          word = item[0];
 	          weight = item[1];
+	          highlight = item[2];
 	        } else {
 	          word = item.word;
 	          weight = item.weight;
 	          attributes = item.attributes;
+	          highlight = item.highlight;
 	        }
 	        var rotateDeg = getRotateDeg();
 	
@@ -1307,32 +1421,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Determine the position to put the text by
 	        // start looking for the nearest points
 	        var r = maxRadius + 1;
-	
-	        var tryToPutWordAtPoint = function tryToPutWordAtPoint(gxy) {
+	        var tryToPutWordAtPoint = function tryToPutWordAtPoint(gxy, index) {
 	          var gx = Math.floor(gxy[0] - info.gw / 2);
 	          var gy = Math.floor(gxy[1] - info.gh / 2);
 	          var gw = info.gw;
 	          var gh = info.gh;
-	
 	          // If we cannot fit the text at this position, return false
 	          // and go to the next position.
 	          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
 	            return false;
 	          }
-	
-	          // Actually put the text on the canvas
-	          drawText(gx, gy, info, word, weight, maxRadius - r, gxy[2], rotateDeg, attributes, i);
-	
-	          // Mark the spaces on the grid as filled
-	          updateGrid(gx, gy, gw, gh, info, item);
-	
+	          var wordItem = {
+	            gx: gx,
+	            gy: gy,
+	            info: info,
+	            word: word,
+	            weight: weight,
+	            distance: maxRadius - r,
+	            theta: gxy[2],
+	            attributes: attributes,
+	            item: item,
+	            i: index,
+	            highlight: highlight
+	          };
+	          _this.words.push(wordItem);
+	          // // Actually put the text on the canvas
+	          // drawText(gx, gy, info, word, weight,
+	          //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
+	          // // Mark the spaces on the grid as filled
+	          // updateGrid(gx, gy, gw, gh, info, item);
 	          // Return true so some() will stop and also return true.
-	          return true;
+	          return wordItem;
 	        };
-	
 	        while (r--) {
 	          var points = getPointsAtRadius(maxRadius - r);
-	
 	          if (settings.shuffle) {
 	            points = [].concat(points);
 	            shuffleArray(points);
@@ -1342,11 +1464,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	          // array.some() will stop and return true
 	          // when putWordAtPoint() returns true.
 	          // If all the points returns false, array.some() returns false.
-	          var drawn = points.some(tryToPutWordAtPoint);
+	          var drawn;
+	          for (var i = 0; i < points.length; i++) {
+	            var drawnItem = tryToPutWordAtPoint(points[i], index);
+	            if (drawnItem) {
+	              drawn = drawnItem;
+	              break;
+	            }
+	          }
 	
+	          // var drawn = points.some(tryToPutWordAtPoint);
 	          if (drawn) {
 	            // leave putWord() and return true
-	            return true;
+	            return drawn;
 	          }
 	        }
 	        // we tried all distances but text won't fit, return false
@@ -1375,7 +1505,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var start = function start() {
 	        // For dimensions, clearCanvas etc.,
 	        // we only care about the first element.
-	        var canvas = elements[0];
+	        var canvas = maskCanvas;
 	
 	        if (canvas.getContext) {
 	          ngx = Math.ceil(canvas.width / g);
@@ -1397,25 +1527,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        // Maxium radius to look for space
 	        maxRadius = Math.floor(Math.sqrt(ngx * ngx + ngy * ngy));
-	
 	        /* Clear the canvas only if the clearCanvas is set,
 	           if not, update the grid to the current canvas state */
 	        grid = [];
 	
 	        var gx, gy, i;
+	        elements.forEach(function (el) {
+	          if (el.getContext) {
+	            var ctx = el.getContext('2d');
+	            ctx.fillStyle = settings.backgroundColor;
+	            ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
+	            ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
+	          } else {
+	            el.textContent = '';
+	            el.style.backgroundColor = settings.backgroundColor;
+	            el.style.position = 'relative';
+	          }
+	        });
 	        if (!canvas.getContext || settings.clearCanvas) {
-	          elements.forEach(function (el) {
-	            if (el.getContext) {
-	              var ctx = el.getContext('2d');
-	              ctx.fillStyle = settings.backgroundColor;
-	              ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
-	              ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
-	            } else {
-	              el.textContent = '';
-	              el.style.backgroundColor = settings.backgroundColor;
-	              el.style.position = 'relative';
-	            }
-	          });
 	
 	          /* fill the grid with empty state */
 	          gx = ngx;
@@ -1431,7 +1560,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	             another canvas and fill the specified background color. */
 	          var bctx = document.createElement('canvas').getContext('2d');
 	
-	          bctx.fillStyle = settings.backgroundColor;
+	          // bctx.fillStyle = settings.backgroundColor;
+	          bctx.fillStyle = '#ffffff';
 	          bctx.fillRect(0, 0, 1, 1);
 	          var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 	
@@ -1531,7 +1661,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        };
 	
 	        addEventListener('wordcloudstart', anotherWordCloudStart);
-	
 	        var timer = loopingFunction(function loop() {
 	          if (i >= settings.list.length) {
 	            stoppingFunction(timer);
@@ -1542,8 +1671,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          escapeTime = new Date().getTime();
 	          var drawn = putWord(settings.list[i], i);
+	          _this.drawItem(drawn);
 	          var canceled = !sendEvent('wordclouddrawn', true, {
-	            item: settings.list[i], drawn: drawn });
+	            item: settings.list[i], drawn: drawn && true });
 	          if (exceedTime() || canceled) {
 	            stoppingFunction(timer);
 	            settings.abort();
@@ -1559,6 +1689,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // All set, start the drawing
 	      start();
+	
+	      return this;
+	    };
+	
+	    WordCloud.prototype.highlight = function (index, isKeepAlive) {
+	      var _this = this;
+	      _this.elements.forEach(function (el, i) {
+	        if (el.getContext) {
+	          el.getContext('2d').clearRect(0, 0, el.width, el.height);
+	        } else {
+	          el.innerHTML = "";
+	        }
+	        _this.words.forEach(function (item) {
+	          if (!isKeepAlive) {
+	            item.highlight = false;
+	          }
+	          if (item.i === index) {
+	            item.highlight = true;
+	          }
+	          _this.drawItem(item);
+	        });
+	      });
+	    };
+	    WordCloud.prototype.downplay = function (index, isKeepAlive) {
+	      var _this = this;
+	      _this.elements.forEach(function (el, i) {
+	        if (el.getContext) {
+	          el.getContext('2d').clearRect(0, 0, el.width, el.height);
+	        } else {
+	          el.innerHTML = "";
+	        }
+	        _this.words.forEach(function (item) {
+	          if (item.i === index) {
+	            item.highlight = false;
+	          }
+	          _this.drawItem(item);
+	        });
+	      });
 	    };
 	
 	    WordCloud.isSupported = isSupported;

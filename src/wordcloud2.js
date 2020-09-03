@@ -156,7 +156,7 @@ if (!window.clearImmediate) {
     return arr;
   };
 
-  var WordCloud = function WordCloud(elements, options) {
+  var WordCloud = function WordCloud(elements, options, maskCanvas) {
     if (!isSupported) {
       return;
     }
@@ -217,6 +217,9 @@ if (!window.clearImmediate) {
       cursorWhenHover: 'pointer',
       mouseout: null
     };
+    var _this = this
+    _this.words = []
+    _this.elements = elements
 
     if (options) {
       for (var key in options) {
@@ -438,8 +441,7 @@ if (!window.clearImmediate) {
       if (!info) {
         return;
       }
-
-      settings.click(info.item, info.dimension, evt);
+      settings.click(info.item, info.dimension, evt, info.index);
       evt.preventDefault();
     };
 
@@ -718,9 +720,72 @@ if (!window.clearImmediate) {
       return true;
     };
 
+    _this.drawItem = function(item, index) {
+      if (!item) {
+        return
+      }      
+      // Actually put the text on the canvas
+      drawText(item.gx, item.gy, item.info, item.word, item.weight,
+        item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
+      // Mark the spaces on the grid as filled
+
+      updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
+    }
+
+    var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor){
+      ctx.beginPath(0);
+      ctx.save()
+      ctx.moveTo(x+r,y);
+      ctx.lineTo(x+width-r,y);
+      ctx.arcTo(x+width,y,x+width,y+r,r);
+      ctx.lineTo(x+width,y+height-r);
+      ctx.arcTo(x+width,y+height,x+width-r,y+height,r);
+      ctx.lineTo(x+r,y+height);
+      ctx.arcTo(x,y+height,x,y+height-r,r);
+      ctx.lineTo(x,y+r);
+      ctx.arcTo(x,y,x+r,y,r);
+      ctx.closePath();
+      ctx.fillStyle = bgColor; //若是给定了值就用给定的值否则给予默认值  
+      ctx.fill();
+      ctx.lineWidth='1'
+      ctx.strokeStyle=borderColor;
+      ctx.stroke();
+      ctx.restore()
+    }
+
+    var colorRgba =  function colorRgba(sHex, alpha = 1) {
+      // 十六进制颜色值的正则表达式
+      var reg = /^#([0-9a-fA-f]{3}|[0-9a-fA-f]{6})$/
+      /* 16进制颜色转为RGB格式 */
+      let sColor = sHex.toLowerCase()
+      if (sColor && reg.test(sColor)) {
+        if (sColor.length === 4) {
+          var sColorNew = '#'
+          for (let i = 1; i < 4; i += 1) {
+            sColorNew += sColor.slice(i, i + 1).concat(sColor.slice(i, i + 1))
+          }
+          sColor = sColorNew
+        }
+        //  处理六位的颜色值
+        var sColorChange = []
+        for (let i = 1; i < 7; i += 2) {
+          sColorChange.push(parseInt('0x' + sColor.slice(i, i + 2)))
+        }
+        // return sColorChange.join(',')
+        // 或
+        return 'rgba(' + sColorChange.join(',') + ',' + alpha + ')'
+      } else if (sColor.startsWith('rgba')) { 
+        return sColor.split(',').map(function(item, i) {
+          if (i === 3 ) { item = ' 0.2)' };
+          return item
+        }).join(',')
+      } else {
+        return sColor
+      }
+    }
     /* Actually draw the text on the grid */
     var drawText = function drawText(gx, gy, info, word, weight,
-                                     distance, theta, rotateDeg, attributes, index) {
+                                     distance, theta, rotateDeg, attributes, index, highlight) {
 
       var fontSize = info.fontSize;
       var color;
@@ -729,47 +794,6 @@ if (!window.clearImmediate) {
       } else {
         color = settings.color;
       }
-
-      // if (Object.prototype.toString.call(color) === '[object Array]') {
-      //   var itemColor = color[index%color.length], ctx, gradient;
-
-      //   elements.forEach(item => {
-      //     if (item.getContext) {
-      //       ctx = item.getContext('2d');
-      //       // 支持阴影  
-      //       ctx.shadowColor = options.shadowColor
-      //       ctx.shadowOffsetX = options.shadowOffsetX;
-      //       ctx.shadowOffsetY = options.shadowOffsetY;
-      //       ctx.shadowBlur = options.shadowBlur;
-
-      //       // 支持渐变色 
-      //       if (Object.prototype.toString.call(itemColor) === '[object Array]') {
-      //         if (Object.prototype.toString.call(itemColor[itemColor.length - 1]) !== '[object Number]') {
-      //           itemColor[itemColor.length] = 0
-      //         }
-      //         var _type = itemColor[itemColor.length - 1]//渐变形式，默认为0，纵向渐变，1为横向渐变
-      //         var _textWidth = ctx.measureText(word).width
-      //         console.log(_textWidth)
-      //         gradient = ctx.createLinearGradient(
-      //           _type !== 0 ? -fontSize : 0, 
-      //           _type === 0 ? -fontSize/2 : 0, 
-      //           _type !== 0 ? _textWidth : 0, 
-      //           _type === 0 ? fontSize/2 : 0);
-      //         for (var i = 0; i < itemColor.length - 1; i++) {
-      //           gradient.addColorStop(i/(itemColor.length - 2), itemColor[i]);
-      //         }
-      //         color = gradient
-      //       } else {
-      //         color = itemColor  
-      //       }
-      //     } else {
-      //       color = itemColor
-      //     }
-      //   })
-      // }
-
-      
-
       // get fontWeight that will be used to set ctx.font and font style rule
       var fontWeight;
       if (getTextFontWeight) {
@@ -797,7 +821,8 @@ if (!window.clearImmediate) {
       var itemColor, 
           gradient, 
           isItemColorArray = false, 
-          colorStartPosition = 'left';
+          colorStartPosition = 'left',
+          markColorInfo;
       if (Object.prototype.toString.call(color) === '[object Array]') {
         itemColor = color[index%color.length]
         color = itemColor
@@ -809,6 +834,7 @@ if (!window.clearImmediate) {
         }
         colorStartPosition = itemColor[itemColor.length - 1] === 0 ? 'top' : 'left'
       }
+      markColorInfo = JSON.parse(JSON.stringify(color))
       elements.forEach(function(el, i) {
         if (el.getContext) {
           var ctx = el.getContext('2d');
@@ -817,11 +843,6 @@ if (!window.clearImmediate) {
           ctx.save();
           ctx.scale(1 / mu, 1 / mu);
           // 支持阴影  
-          ctx.shadowColor = options.shadowColor
-          ctx.shadowOffsetX = options.shadowOffsetX;
-          ctx.shadowOffsetY = options.shadowOffsetY;
-          ctx.shadowBlur = options.shadowBlur;
-
           ctx.font = fontWeight + ' ' +
                      (fontSize * mu).toString(10) + 'px ' + settings.fontFamily;
           // 支持渐变色 
@@ -837,13 +858,42 @@ if (!window.clearImmediate) {
             }
             color = gradient
           }
+          
+          
           ctx.fillStyle = color;
-
+          
           // Translate the canvas position to the origin coordinate of where
           // the text should be put.
           ctx.translate((gx + info.gw / 2) * g * mu,
-                        (gy + info.gh / 2) * g * mu);
-
+                        (gy + info.gh / 2) * g * mu);    
+          if (highlight) {
+            var bggradient;
+            if (isItemColorArray) {
+              bggradient = ctx.createLinearGradient(
+                colorStartPosition !== 'top' ? -info.fillTextOffsetX * mu - (4 * 1/mu)/2 : 0,  
+                colorStartPosition === 'top' ? -info.fillTextOffsetY * mu - (4 * 1/mu)/2 : 0, 
+                colorStartPosition !== 'top' ? info.fillTextOffsetX * mu - (4 * 1/mu)/2 : 0, 
+                colorStartPosition === 'top' ? info.fillTextOffsetY * mu - (4 * 1/mu)/2 : 0
+              );
+              for (var i = 0; i < itemColor.length - 1; i++) {
+                bggradient.addColorStop(i/(itemColor.length - 2), colorRgba(itemColor[itemColor.length - 2 - i], 0.2));
+              }
+            }
+            roundRect(
+              ctx, 
+              info.fillTextOffsetX * mu - (2 * 1/mu),
+              info.fillTextOffsetY * mu - (2 * 1/mu), 
+              ctx.measureText(word).width + (4*1/mu), 
+              fontSize + (4*1/mu), 
+              4*1/mu, 
+              isItemColorArray ? bggradient : colorRgba(itemColor ? itemColor : color, 0.2),
+              isItemColorArray ? itemColor[0] : itemColor ? itemColor : color,
+            )  
+          }
+          ctx.shadowColor = options.shadowColor
+          ctx.shadowOffsetX = options.shadowOffsetX;
+          ctx.shadowOffsetY = options.shadowOffsetY;
+          ctx.shadowBlur = options.shadowBlur;
           if (rotateDeg !== 0) {
             ctx.rotate(- rotateDeg);
           }
@@ -855,15 +905,19 @@ if (!window.clearImmediate) {
           // Please read https://bugzil.la/737852#c6.
           // Here, we use textBaseline = 'middle' and draw the text at exactly
           // 0.5 * fontSize lower.
+          
           ctx.textBaseline = 'middle';
+          
           ctx.fillText(word, info.fillTextOffsetX * mu,
                              (info.fillTextOffsetY + fontSize * 0.5) * mu);
-
+          
+                             
           // The below box is always matches how <span>s are positioned
           /* ctx.strokeRect(info.fillTextOffsetX, info.fillTextOffsetY,
             info.fillTextWidth, info.fillTextHeight); */
 
           // Restore the state.
+          
           ctx.restore();
         } else {
           if (isItemColorArray) {
@@ -886,7 +940,13 @@ if (!window.clearImmediate) {
             'left': ((gx + info.gw / 2) * g + info.fillTextOffsetX) + 'px',
             'top': ((gy + info.gh / 2) * g + info.fillTextOffsetY) + 'px',
             'width': info.fillTextWidth + 'px',
-            'height': info.fillTextHeight + 'px',
+            // 'height': info.fillTextHeight + 'px',
+            
+            'box-sizing': 'border-box',
+            'border-radius': '4px',
+            'border-style': 'solid',
+            'border-width': '1px',
+            'border-color': 'transparent',
             'lineHeight': fontSize + 'px',
             'whiteSpace': 'nowrap',
             'transform': transformRule,
@@ -895,10 +955,34 @@ if (!window.clearImmediate) {
             'transformOrigin': '50% 40%',
             'webkitTransformOrigin': '50% 40%',
             'msTransformOrigin': '50% 40%',
+            'font': fontWeight + ' ' +
+                    (fontSize * info.mu) + 'px ' + settings.fontFamily,
+          }
+          var styleRules = {
+            'display': 'block',
+            'font': fontWeight + ' ' +
+                    (fontSize * info.mu) + 'px ' + settings.fontFamily,
             // 'textShadow': options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor, //增加文字阴影
             'filter': 'drop-shadow(' + options.shadowOffsetX + 'px ' + options.shadowOffsetY + 'px ' + options.shadowBlur + 'px ' + options.shadowColor + ')',
             // 'cursor': options.tooltip.show || options.click || options.hover ? 'pointer' : 'auto'
           };
+          if (highlight) {
+            posStyle = Object.assign(posStyle, {
+              'border-color': isItemColorArray ? color[0] : color,
+              'border-style': 'solid',
+              'border-width': '1px',
+              'border-color': isItemColorArray ? color[0] : color,
+            })
+            if (isItemColorArray) {
+              posStyle.backgroundImage = '-webkit-linear-gradient(' + colorStartPosition + ',' + color.filter(function(item, i) {
+                return i != color.length - 1
+              }).map(function(item) {
+                return colorRgba(item, 0.2)
+              }).join(',') + ')'
+            } else {
+              posStyle.backgroundColor = colorRgba(color, 0.2)
+            }
+          }
           if (color) {
             if (Object.prototype.toString.call(color) === '[object Array]') {// DOM 渲染时增加渐变色
               styleRules = Object.assign({
@@ -929,7 +1013,7 @@ if (!window.clearImmediate) {
     };
 
     /* Help function to updateGrid */
-    var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item) {
+    var fillGridAt = function fillGridAt(x, y, drawMask, dimension, item, index) {
       if (x >= ngx || y >= ngy || x < 0 || y < 0) {
         return;
       }
@@ -942,13 +1026,13 @@ if (!window.clearImmediate) {
       }
 
       if (interactive) {
-        infoGrid[x][y] = { item: item, dimension: dimension };
+        infoGrid[x][y] = { item: item, dimension: dimension, index: index };
       }
     };
 
     /* Update the filling information of the given space with occupied points.
        Draw the mask on the canvas if necessary. */
-    var updateGrid = function updateGrid(gx, gy, gw, gh, info, item) {
+    var updateGrid = function updateGrid(gx, gy, gw, gh, info, item, index) {
       var occupied = info.occupied;
       var drawMask = settings.drawMask;
       var ctx;
@@ -978,7 +1062,7 @@ if (!window.clearImmediate) {
           continue;
         }
 
-        fillGridAt(px, py, drawMask, dimension, item);
+        fillGridAt(px, py, drawMask, dimension, item, index);
       }
 
       if (drawMask) {
@@ -990,14 +1074,16 @@ if (!window.clearImmediate) {
        calculate it's size and determine it's position, and actually
        put it on the canvas. */
     var putWord = function putWord(item, i) {
-      var word, weight, attributes;
+      var word, weight, attributes, highlight, index = i;
       if (Array.isArray(item)) {
         word = item[0];
         weight = item[1];
+        highlight = item[2]
       } else {
         word = item.word;
         weight = item.weight;
         attributes = item.attributes;
+        highlight = item.highlight
       }
       var rotateDeg = getRotateDeg();
 
@@ -1027,33 +1113,40 @@ if (!window.clearImmediate) {
       // Determine the position to put the text by
       // start looking for the nearest points
       var r = maxRadius + 1;
-
-      var tryToPutWordAtPoint = function(gxy) {
+      var tryToPutWordAtPoint = function(gxy, index) {
         var gx = Math.floor(gxy[0] - info.gw / 2);
         var gy = Math.floor(gxy[1] - info.gh / 2);
         var gw = info.gw;
         var gh = info.gh;
-
         // If we cannot fit the text at this position, return false
         // and go to the next position.
         if (!canFitText(gx, gy, gw, gh, info.occupied)) {
           return false;
         }
-
-        // Actually put the text on the canvas
-        drawText(gx, gy, info, word, weight,
-                 (maxRadius - r), gxy[2], rotateDeg, attributes, i);
-
-        // Mark the spaces on the grid as filled
-        updateGrid(gx, gy, gw, gh, info, item);
-
+        var wordItem = {
+          gx: gx,
+          gy: gy,
+          info: info,
+          word: word,
+          weight: weight,
+          distance: (maxRadius - r),
+          theta: gxy[2],
+          attributes: attributes,
+          item: item,
+          i: index,
+          highlight: highlight
+        }
+        _this.words.push(wordItem)
+        // // Actually put the text on the canvas
+        // drawText(gx, gy, info, word, weight,
+        //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
+        // // Mark the spaces on the grid as filled
+        // updateGrid(gx, gy, gw, gh, info, item);
         // Return true so some() will stop and also return true.
-        return true;
+        return wordItem;
       };
-
       while (r--) {
         var points = getPointsAtRadius(maxRadius - r);
-
         if (settings.shuffle) {
           points = [].concat(points);
           shuffleArray(points);
@@ -1063,11 +1156,19 @@ if (!window.clearImmediate) {
         // array.some() will stop and return true
         // when putWordAtPoint() returns true.
         // If all the points returns false, array.some() returns false.
-        var drawn = points.some(tryToPutWordAtPoint);
-
+        var drawn;
+        for (var i = 0; i < points.length; i++) {
+          var drawnItem = tryToPutWordAtPoint(points[i], index)
+          if (drawnItem) {
+            drawn = drawnItem
+            break
+          }
+        }
+        
+        // var drawn = points.some(tryToPutWordAtPoint);
         if (drawn) {
           // leave putWord() and return true
-          return true;
+          return drawn;
         }
       }
       // we tried all distances but text won't fit, return false
@@ -1096,7 +1197,7 @@ if (!window.clearImmediate) {
     var start = function start() {
       // For dimensions, clearCanvas etc.,
       // we only care about the first element.
-      var canvas = elements[0];
+      var canvas = maskCanvas;
 
       if (canvas.getContext) {
         ngx = Math.ceil(canvas.width / g);
@@ -1120,26 +1221,25 @@ if (!window.clearImmediate) {
 
       // Maxium radius to look for space
       maxRadius = Math.floor(Math.sqrt(ngx * ngx + ngy * ngy));
-
       /* Clear the canvas only if the clearCanvas is set,
          if not, update the grid to the current canvas state */
       grid = [];
 
       var gx, gy, i;
+      elements.forEach(function(el) {
+        if (el.getContext) {
+          var ctx = el.getContext('2d');
+          ctx.fillStyle = settings.backgroundColor;
+          ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
+          ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
+        } else {
+          el.textContent = '';
+          el.style.backgroundColor = settings.backgroundColor;
+          el.style.position = 'relative';
+        }
+      });
       if (!canvas.getContext || settings.clearCanvas) {
-        elements.forEach(function(el) {
-          if (el.getContext) {
-            var ctx = el.getContext('2d');
-            ctx.fillStyle = settings.backgroundColor;
-            ctx.clearRect(0, 0, ngx * (g + 1), ngy * (g + 1));
-            ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
-          } else {
-            el.textContent = '';
-            el.style.backgroundColor = settings.backgroundColor;
-            el.style.position = 'relative';
-          }
-        });
-
+        
         /* fill the grid with empty state */
         gx = ngx;
         while (gx--) {
@@ -1154,7 +1254,8 @@ if (!window.clearImmediate) {
            another canvas and fill the specified background color. */
         var bctx = document.createElement('canvas').getContext('2d');
 
-        bctx.fillStyle = settings.backgroundColor;
+        // bctx.fillStyle = settings.backgroundColor;
+        bctx.fillStyle = '#ffffff'
         bctx.fillRect(0, 0, 1, 1);
         var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
 
@@ -1256,7 +1357,6 @@ if (!window.clearImmediate) {
       };
 
       addEventListener('wordcloudstart', anotherWordCloudStart);
-
       var timer = loopingFunction(function loop() {
         if (i >= settings.list.length) {
           stoppingFunction(timer);
@@ -1267,8 +1367,9 @@ if (!window.clearImmediate) {
         }
         escapeTime = (new Date()).getTime();
         var drawn = putWord(settings.list[i], i);
+        _this.drawItem(drawn);
         var canceled = !sendEvent('wordclouddrawn', true, {
-          item: settings.list[i], drawn: drawn });
+          item: settings.list[i], drawn: drawn && true });
         if (exceedTime() || canceled) {
           stoppingFunction(timer);
           settings.abort();
@@ -1284,11 +1385,49 @@ if (!window.clearImmediate) {
 
     // All set, start the drawing
     start();
+
+    return this
   };
+
+  WordCloud.prototype.highlight = function(index, isKeepAlive) {
+    var _this = this
+    _this.elements.forEach(function(el, i) {
+      if (el.getContext) {
+        el.getContext('2d').clearRect(0, 0, el.width, el.height);
+      } else {
+        el.innerHTML = ""
+      }
+      _this.words.forEach(item => {
+        if (!isKeepAlive) {
+          item.highlight = false
+        }
+        if (item.i === index) {
+          item.highlight = true
+        }
+        _this.drawItem(item)
+      })
+    })
+  }
+  WordCloud.prototype.downplay = function(index, isKeepAlive) {
+    var _this = this
+    _this.elements.forEach(function(el, i) {
+      if (el.getContext) {
+        el.getContext('2d').clearRect(0, 0, el.width, el.height);
+      } else {
+        el.innerHTML = ""
+      }
+      _this.words.forEach(item => {
+        if (item.i === index) {
+          item.highlight = false
+        }
+        _this.drawItem(item)
+      })
+    })
+  }
 
   WordCloud.isSupported = isSupported;
   WordCloud.minFontSize = minFontSize;
-
+  
   // Expose the library as an AMD module
   if (typeof define === 'function' && define.amd) {
     global.WordCloud = WordCloud;
@@ -1298,5 +1437,6 @@ if (!window.clearImmediate) {
   } else {
     global.WordCloud = WordCloud;
   }
+
 
 })(this); //jshint ignore:line
