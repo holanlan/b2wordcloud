@@ -121,6 +121,8 @@ export class B2wordcloud {
         const height = this._wrapper.clientHeight
         target.width = width
         target.height = height
+        target.style.width = width + 'px'
+        target.style.height = height + 'px'
     }
     _setOptions() {
         this._fixWeightFactor(this._options)

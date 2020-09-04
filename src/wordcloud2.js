@@ -164,8 +164,23 @@ if (!window.clearImmediate) {
     if (!Array.isArray(elements)) {
       elements = [elements];
     }
-
+    // 获取像素比
+    var getPixelRatio = function (context) {
+      var backingStore = context.backingStorePixelRatio ||
+          context.webkitBackingStorePixelRatio ||
+          context.mozBackingStorePixelRatio ||
+          context.msBackingStorePixelRatio ||
+          context.oBackingStorePixelRatio ||
+          context.backingStorePixelRatio || 1;
+      return (window.devicePixelRatio || 1) / backingStore;
+    };
+    var canvasEl = null
+    var ratio = 1
     elements.forEach(function(el, i) {
+      if (el.getContext('2d')) {
+        canvasEl = el
+        ratio = getPixelRatio(el.getContext('2d'))
+      }
       if (typeof el === 'string') {
         elements[i] = document.getElementById(el);
         if (!elements[i]) {
@@ -412,8 +427,8 @@ if (!window.clearImmediate) {
       var eventX = clientX - rect.left;
       var eventY = clientY - rect.top;
 
-      var x = Math.floor(eventX * ((canvas.width / rect.width) || 1) / g);
-      var y = Math.floor(eventY * ((canvas.height / rect.height) || 1) / g);
+      var x = Math.floor(eventX * ((canvas.width / rect.width / ratio) || 1) / g);
+      var y = Math.floor(eventY * ((canvas.height / rect.height / ratio) || 1) / g);
 
       return infoGrid[x][y];
     };
@@ -924,7 +939,6 @@ if (!window.clearImmediate) {
             color = itemColor
           }
           // drawText on DIV element
-          var div = document.createElement('div');
           var span = document.createElement('span');
           var transformRule = '';
           transformRule = 'rotate(' + (- rotateDeg / Math.PI * 180) + 'deg) ';
@@ -933,8 +947,11 @@ if (!window.clearImmediate) {
               'translateX(-' + (info.fillTextWidth / 4) + 'px) ' +
               'scale(' + (1 / info.mu) + ')';
           }
-          var posStyle = {
+          var styleRules = {
             'position': 'absolute',
+            'display': 'block',
+            'font': fontWeight + ' ' +
+                    (fontSize * info.mu) + 'px ' + settings.fontFamily,
             'left': ((gx + info.gw / 2) * g + info.fillTextOffsetX) + 'px',
             'top': ((gy + info.gh / 2) * g + info.fillTextOffsetY) + 'px',
             'width': info.fillTextWidth + 'px',
@@ -994,9 +1011,6 @@ if (!window.clearImmediate) {
             styleRules.color = color;
           }
           span.textContent = word;
-          for(var cssProp in posStyle) {
-            div.style[cssProp] = posStyle[cssProp];
-          }
           for (var cssProp in styleRules) {
             span.style[cssProp] = styleRules[cssProp];
           }
@@ -1008,8 +1022,7 @@ if (!window.clearImmediate) {
           if (classes) {
             span.className += classes;
           }
-          div.appendChild(span)
-          el.appendChild(div);
+          el.appendChild(span);
         }
       });
     };
@@ -1242,7 +1255,6 @@ if (!window.clearImmediate) {
       });
       if (!canvas.getContext || settings.clearCanvas) {
         
-
         /* fill the grid with empty state */
         gx = ngx;
         while (gx--) {
@@ -1384,6 +1396,14 @@ if (!window.clearImmediate) {
         i++;
         timer = loopingFunction(loop, settings.wait);
       }, settings.wait);
+
+      if (canvasEl) {
+        var canvasCtx = canvasEl.getContext('2d')
+        var ratio = getPixelRatio(canvasCtx)
+        canvasEl.width = canvasEl.width * ratio
+        canvasEl.height = canvasEl.height * ratio
+        canvasCtx.scale(ratio, ratio)
+      }
     };
 
     // All set, start the drawing

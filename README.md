@@ -10,7 +10,7 @@
 
 简单线上演示 [DEMO](https://holanlan.github.io/b2wordcloud/)
 
-渐变+阴影+形状演示 [DEMO](https://holanlan.github.io/b2wordcloud/shape.html)
+渐变+阴影+形状+点击高亮演示 [DEMO](https://holanlan.github.io/b2wordcloud/shape.html)
 
 ## Installtion
 - 通过script引入
@@ -56,6 +56,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 -以下为新增或有改动的配置项
 
 ### options
+- `list`：基于原有配置项做了扩展，原有格式为[key,value],新增是否高亮选项，如['foo', 12332, true]，数组第三项则表示默认是否高亮
 - `renderer`：新增配置项**渲染模式**，默认为"canvas"，可选择"div"
   - e.g. renderer: 'canvas'
 - `tooltip`：新增配置项，格式为object格式，详细配置见下
@@ -110,6 +111,12 @@ wordcloud.dispatchAction({
 
 ## 重要版本更新
 
+### v2.0.0
+- 字符大小逻辑重构
+- 图片形状逻辑重构
+- 支持词高亮
+- 新增方法 `dispatchAction`方法，详细用法见文档
+
 ### v1.0.14
 - 新增 `cursorWhenHover` 配置项
 
@@ -125,6 +132,3 @@ wordcloud.dispatchAction({
 - renderer: 'div' 模式下，阴影改用filter: drop-shadow，阴影效果更佳
 - renderer: 'canvas' 模式下优化渐变色计算逻辑，效果更佳
 - 支持横向渐变与纵向渐变两种选项，详情见`color`配置项
-
-### v1.0.18
-- 新增方法 `dispatchAction`方法，详细用法见文档

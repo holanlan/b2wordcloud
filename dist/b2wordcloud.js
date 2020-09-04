@@ -193,6 +193,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var height = this._wrapper.clientHeight;
 	            target.width = width;
 	            target.height = height;
+	            target.style.width = width + 'px';
+	            target.style.height = height + 'px';
 	        }
 	    }, {
 	        key: '_setOptions',
@@ -527,8 +529,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!Array.isArray(elements)) {
 	        elements = [elements];
 	      }
-	
+	      // 获取像素比
+	      var getPixelRatio = function getPixelRatio(context) {
+	        var backingStore = context.backingStorePixelRatio || context.webkitBackingStorePixelRatio || context.mozBackingStorePixelRatio || context.msBackingStorePixelRatio || context.oBackingStorePixelRatio || context.backingStorePixelRatio || 1;
+	        return (window.devicePixelRatio || 1) / backingStore;
+	      };
+	      var canvasEl = null;
+	      var ratio = 1;
 	      elements.forEach(function (el, i) {
+	        if (el.getContext('2d')) {
+	          canvasEl = el;
+	          ratio = getPixelRatio(el.getContext('2d'));
+	        }
 	        if (typeof el === 'string') {
 	          elements[i] = document.getElementById(el);
 	          if (!elements[i]) {
@@ -759,8 +771,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var eventX = clientX - rect.left;
 	        var eventY = clientY - rect.top;
 	
-	        var x = Math.floor(eventX * (canvas.width / rect.width || 1) / g);
-	        var y = Math.floor(eventY * (canvas.height / rect.height || 1) / g);
+	        var x = Math.floor(eventX * (canvas.width / rect.width / ratio || 1) / g);
+	        var y = Math.floor(eventY * (canvas.height / rect.height / ratio || 1) / g);
 	
 	        return infoGrid[x][y];
 	      };
@@ -1233,15 +1245,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	              color = itemColor;
 	            }
 	            // drawText on DIV element
-	            var div = document.createElement('div');
 	            var span = document.createElement('span');
 	            var transformRule = '';
 	            transformRule = 'rotate(' + -rotateDeg / Math.PI * 180 + 'deg) ';
 	            if (info.mu !== 1) {
 	              transformRule += 'translateX(-' + info.fillTextWidth / 4 + 'px) ' + 'scale(' + 1 / info.mu + ')';
 	            }
-	            var posStyle = {
+	            var styleRules = _defineProperty({
 	              'position': 'absolute',
+	              'display': 'block',
+	              'font': fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily,
 	              'left': (gx + info.gw / 2) * g + info.fillTextOffsetX + 'px',
 	              'top': (gy + info.gh / 2) * g + info.fillTextOffsetY + 'px',
 	              'width': info.fillTextWidth + 'px',
@@ -1259,9 +1272,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	              'msTransform': transformRule,
 	              'transformOrigin': '50% 40%',
 	              'webkitTransformOrigin': '50% 40%',
-	              'msTransformOrigin': '50% 40%',
-	              'font': fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily
-	            };
+	              'msTransformOrigin': '50% 40%'
+	            }, 'font', fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily);
 	            var styleRules = {
 	              'display': 'block',
 	              'font': fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily,
@@ -1299,9 +1311,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	              styleRules.color = color;
 	            }
 	            span.textContent = word;
-	            for (var cssProp in posStyle) {
-	              div.style[cssProp] = posStyle[cssProp];
-	            }
 	            for (var cssProp in styleRules) {
 	              span.style[cssProp] = styleRules[cssProp];
 	            }
@@ -1313,8 +1322,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (classes) {
 	              span.className += classes;
 	            }
-	            div.appendChild(span);
-	            el.appendChild(div);
+	            el.appendChild(span);
 	          }
 	        });
 	      };
@@ -1687,6 +1695,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	          i++;
 	          timer = loopingFunction(loop, settings.wait);
 	        }, settings.wait);
+	
+	        if (canvasEl) {
+	          var canvasCtx = canvasEl.getContext('2d');
+	          var ratio = getPixelRatio(canvasCtx);
+	          canvasEl.width = canvasEl.width * ratio;
+	          canvasEl.height = canvasEl.height * ratio;
+	          canvasCtx.scale(ratio, ratio);
+	        }
 	      };
 	
 	      // All set, start the drawing
