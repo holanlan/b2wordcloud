@@ -537,7 +537,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var canvasEl = null;
 	      var ratio = 1;
 	      elements.forEach(function (el, i) {
-	        if (el.getContext('2d')) {
+	        if (el.getContext && el.getContext('2d')) {
 	          canvasEl = el;
 	          ratio = getPixelRatio(el.getContext('2d'));
 	        }
@@ -1245,13 +1245,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	              color = itemColor;
 	            }
 	            // drawText on DIV element
+	            var div = document.createElement('div');
 	            var span = document.createElement('span');
 	            var transformRule = '';
 	            transformRule = 'rotate(' + -rotateDeg / Math.PI * 180 + 'deg) ';
 	            if (info.mu !== 1) {
 	              transformRule += 'translateX(-' + info.fillTextWidth / 4 + 'px) ' + 'scale(' + 1 / info.mu + ')';
 	            }
-	            var styleRules = _defineProperty({
+	            var posStyle = _defineProperty({
 	              'position': 'absolute',
 	              'display': 'block',
 	              'font': fontWeight + ' ' + fontSize * info.mu + 'px ' + settings.fontFamily,
@@ -1311,6 +1312,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	              styleRules.color = color;
 	            }
 	            span.textContent = word;
+	            for (var cssProp in posStyle) {
+	              div.style[cssProp] = posStyle[cssProp];
+	            }
 	            for (var cssProp in styleRules) {
 	              span.style[cssProp] = styleRules[cssProp];
 	            }
@@ -1322,7 +1326,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (classes) {
 	              span.className += classes;
 	            }
-	            el.appendChild(span);
+	            div.appendChild(span);
+	            el.appendChild(div);
 	          }
 	        });
 	      };

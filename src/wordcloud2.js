@@ -177,7 +177,7 @@ if (!window.clearImmediate) {
     var canvasEl = null
     var ratio = 1
     elements.forEach(function(el, i) {
-      if (el.getContext('2d')) {
+      if (el.getContext && el.getContext('2d')) {
         canvasEl = el
         ratio = getPixelRatio(el.getContext('2d'))
       }
@@ -939,6 +939,7 @@ if (!window.clearImmediate) {
             color = itemColor
           }
           // drawText on DIV element
+          var div = document.createElement('div');
           var span = document.createElement('span');
           var transformRule = '';
           transformRule = 'rotate(' + (- rotateDeg / Math.PI * 180) + 'deg) ';
@@ -947,7 +948,7 @@ if (!window.clearImmediate) {
               'translateX(-' + (info.fillTextWidth / 4) + 'px) ' +
               'scale(' + (1 / info.mu) + ')';
           }
-          var styleRules = {
+          var posStyle = {
             'position': 'absolute',
             'display': 'block',
             'font': fontWeight + ' ' +
@@ -1011,6 +1012,9 @@ if (!window.clearImmediate) {
             styleRules.color = color;
           }
           span.textContent = word;
+          for(var cssProp in posStyle) {
+            div.style[cssProp] = posStyle[cssProp];
+          }
           for (var cssProp in styleRules) {
             span.style[cssProp] = styleRules[cssProp];
           }
@@ -1022,7 +1026,8 @@ if (!window.clearImmediate) {
           if (classes) {
             span.className += classes;
           }
-          el.appendChild(span);
+          div.appendChild(span)
+          el.appendChild(div);
         }
       });
     };
