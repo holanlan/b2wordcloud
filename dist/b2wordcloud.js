@@ -74,42 +74,42 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	// https://github.com/timdream/wordcloud2.js/blob/c236bee60436e048949f9becc4f0f67bd832dc5c/index.js#L233
-	function updateCanvasMask(maskCanvas) {
-	    var ctx = maskCanvas.getContext('2d');
+	function updateCanvasMask(shapeCanvas, maskCanvas) {
+	    /* Determine bgPixel by creating
+	    another canvas and fill the specified background color. */
+	    var bctx = document.createElement('canvas').getContext('2d');
+	
+	    bctx.fillStyle = '#ffffff';
+	    bctx.fillRect(0, 0, 1, 1);
+	    var bgPixel = bctx.getImageData(0, 0, 1, 1).data;
+	
+	    var maskCanvasScaled = document.createElement('canvas');
+	    maskCanvasScaled.width = maskCanvas.width;
+	    maskCanvasScaled.height = maskCanvas.height;
+	    var ctx = maskCanvasScaled.getContext('2d');
+	
+	    ctx.drawImage(shapeCanvas, 0, 0, shapeCanvas.width, shapeCanvas.height, 0, 0, maskCanvasScaled.width, maskCanvasScaled.height);
+	
 	    var imageData = ctx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
 	    var newImageData = ctx.createImageData(imageData);
-	    var toneSum = 0;
-	    var toneCnt = 0;
 	    for (var i = 0; i < imageData.data.length; i += 4) {
-	        var alpha = imageData.data[i + 3];
-	        if (alpha > 128) {
-	            var tone = imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
-	            toneSum += tone;
-	            ++toneCnt;
-	        }
-	    }
-	    var threshold = toneSum / toneCnt;
-	
-	    for (var i = 0; i < imageData.data.length; i += 4) {
-	        var tone = imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
-	        var alpha = imageData.data[i + 3];
-	
-	        if (alpha < 128 || tone > threshold) {
-	            // Area not to draw
-	            newImageData.data[i] = 0;
-	            newImageData.data[i + 1] = 0;
-	            newImageData.data[i + 2] = 0;
-	            newImageData.data[i + 3] = 0;
+	        if (imageData.data[i + 3] > 128) {
+	            newImageData.data[i] = bgPixel[0];
+	            newImageData.data[i + 1] = bgPixel[1];
+	            newImageData.data[i + 2] = bgPixel[2];
+	            newImageData.data[i + 3] = bgPixel[3];
 	        } else {
-	            // Area to draw
-	            // The color must be same with backgroundColor
-	            newImageData.data[i] = 255;
-	            newImageData.data[i + 1] = 255;
-	            newImageData.data[i + 2] = 255;
-	            newImageData.data[i + 3] = 255;
+	            // This color must not be the same w/ the bgPixel.
+	            newImageData.data[i] = bgPixel[0];
+	            newImageData.data[i + 1] = bgPixel[1];
+	            newImageData.data[i + 2] = bgPixel[2];
+	            newImageData.data[i + 3] = bgPixel[3] ? bgPixel[3] - 1 : 0;
 	        }
 	    }
 	    ctx.putImageData(newImageData, 0, 0);
+	    ctx = maskCanvas.getContext('2d');
+	    ctx.drawImage(maskCanvasScaled, 0, 0);
+	    maskCanvasScaled = ctx = imageData = newImageData = bctx = bgPixel = undefined;
 	}
 	
 	var B2wordcloud = exports.B2wordcloud = function () {
@@ -130,6 +130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }, options);
 	        this._wordcloud2 = null;
 	        this._maskCanvas = null;
+	        this._shapeCanvas = null;
 	        this._tempCanvas = null;
 	        this._maskImg = null;
 	        this._init();
@@ -253,6 +254,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	            img.src = this._options.maskImage;
 	            img.onload = function () {
 	                _this2._maskImg = img;
+	                _this2._shapeCanvas = document.createElement('canvas');
+	                _this2._shapeCanvas.width = img.width;
+	                _this2._shapeCanvas.height = img.height;
+	                var ctx = _this2._shapeCanvas.getContext('2d');
+	                ctx.drawImage(img, 0, 0, img.width, img.height);
+	                var imageData = ctx.getImageData(0, 0, _this2._shapeCanvas.width, _this2._shapeCanvas.height);
+	                var newImageData = ctx.createImageData(imageData);
+	                for (var i = 0; i < imageData.data.length; i += 4) {
+	                    var tone = imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2];
+	                    var alpha = imageData.data[i + 3];
+	
+	                    if (alpha < 128 || tone > 128 * 3) {
+	                        // Area not to draw
+	                        newImageData.data[i] = newImageData.data[i + 1] = newImageData.data[i + 2] = 255;
+	                        newImageData.data[i + 3] = 0;
+	                    } else {
+	                        // Area to draw
+	                        newImageData.data[i] = newImageData.data[i + 1] = newImageData.data[i + 2] = 0;
+	                        newImageData.data[i + 3] = 255;
+	                    }
+	                }
+	
+	                ctx.putImageData(newImageData, 0, 0);
 	                _this2._render();
 	            };
 	        }
@@ -262,10 +286,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var isResize = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 	
 	            if (this._maskImg) {
-	                var canvas = this._maskCanvas;
-	                var ctx = canvas.getContext('2d');
-	                ctx.drawImage(this._maskImg, 0, 0, canvas.width, canvas.height);
-	                updateCanvasMask(canvas);
+	                updateCanvasMask(this._shapeCanvas, this._maskCanvas);
 	            }
 	            this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options, this._maskCanvas, isResize);
 	        }
@@ -1457,7 +1478,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            attributes: attributes,
 	            item: item,
 	            i: index,
-	            highlight: highlight
+	            highlight: highlight,
+	            rotateDeg: rotateDeg
 	          };
 	          _this.words.push(wordItem);
 	          // // Actually put the text on the canvas
@@ -1548,6 +1570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        var gx, gy, i;
 	        elements.forEach(function (el) {
+	          el.style.backgroundColor = settings.backgroundColor;
 	          if (el.getContext) {
 	            var ctx = el.getContext('2d');
 	            ctx.fillStyle = settings.backgroundColor;
@@ -1555,7 +1578,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
 	          } else {
 	            el.textContent = '';
-	            el.style.backgroundColor = settings.backgroundColor;
 	            el.style.position = 'relative';
 	          }
 	        });

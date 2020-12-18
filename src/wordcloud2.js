@@ -738,7 +738,7 @@ if (!window.clearImmediate) {
     _this.drawItem = function(item, index) {
       if (!item) {
         return
-      }      
+      }     
       // Actually put the text on the canvas
       drawText(item.gx, item.gy, item.info, item.word, item.weight,
         item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
@@ -1109,7 +1109,7 @@ if (!window.clearImmediate) {
 
       // get info needed to put the text onto the canvas
       var info = getTextInfo(word, weight, rotateDeg);
-
+      
       // not getting the info means we shouldn't be drawing this one.
       if (!info) {
         return false;
@@ -1154,7 +1154,8 @@ if (!window.clearImmediate) {
           attributes: attributes,
           item: item,
           i: index,
-          highlight: highlight
+          highlight: highlight,
+          rotateDeg: rotateDeg
         }
         _this.words.push(wordItem)
         // // Actually put the text on the canvas
@@ -1247,6 +1248,7 @@ if (!window.clearImmediate) {
 
       var gx, gy, i;
       elements.forEach(function(el) {
+        el.style.backgroundColor = settings.backgroundColor
         if (el.getContext) {
           var ctx = el.getContext('2d');
           ctx.fillStyle = settings.backgroundColor;
@@ -1254,7 +1256,6 @@ if (!window.clearImmediate) {
           ctx.fillRect(0, 0, ngx * (g + 1), ngy * (g + 1));
         } else {
           el.textContent = '';
-          el.style.backgroundColor = settings.backgroundColor;
           el.style.position = 'relative';
         }
       });
