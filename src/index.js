@@ -123,7 +123,7 @@ export class B2wordcloud {
         target.style.height = height + 'px'
     }
     _setOptions() {
-        this._fixWeightFactor(this._options)
+        !this._options.weightFactor && this._fixWeightFactor(this._options)
         if (this._options.tooltip.show) {
             this._initTooltip()
             let tooltipWidth, tooltipHeight, offsetY, offsetX

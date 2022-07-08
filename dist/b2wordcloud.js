@@ -202,7 +202,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _setOptions() {
 	            var _this = this;
 	
-	            this._fixWeightFactor(this._options);
+	            !this._options.weightFactor && this._fixWeightFactor(this._options);
 	            if (this._options.tooltip.show) {
 	                this._initTooltip();
 	                var tooltipWidth = void 0,
