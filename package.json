@@ -9,7 +9,9 @@
     "build": "cross-env NODE_ENV=production webpack --color"
   },
   "keywords": [
-    "wordcloud"
+    "wordcloud",
+    "javascript",
+    "chart"
   ],
   "repository": {
     "type": "git",
