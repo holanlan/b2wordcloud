@@ -4,9 +4,11 @@
 
 基于[wordcloud2.js](https://github.com/timdream/wordcloud2.js)生成2D词云图
 
-扩展特性若干，如tooltip，渐变色，阴影
+扩展特性若干，如tooltip，渐变色，阴影等
 
-![](./demo.jpeg)
+增强词云大小计算算法，差异化高频词，优化形状渲染逻辑
+
+![](./demo2.png)
 
 简单线上演示 [DEMO](https://holanlan.github.io/b2wordcloud/)
 
