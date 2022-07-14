@@ -371,7 +371,6 @@
         }
         // return
         var wordCloud = new B2wordcloud(document.getElementById("chart"), {
-            renderer: 'div',
             list: words,
             tooltip: {
                 formatter: function(item) {
@@ -386,8 +385,7 @@
                 ['#7dc1ff', '#366af4'],
             ],
             drawOutOfBound: false,
-            maxFontSize: 32,
-            minFontSize: 16,
+            autoFontSize: true,
             minRotation: -90,
             maxRotation: 90,
             rotationSteps: 45,

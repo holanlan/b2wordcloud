@@ -528,12 +528,12 @@ if (!window.clearImmediate) {
       }
     };
 
-    var getTextInfo = function getTextInfo(word, weight, rotateDeg) {
+    var getTextInfo = function getTextInfo(word, weight, rotateDeg, lastFontSize) {
       // calculate the acutal font size
       // fontSize === 0 means weightFactor function wants the text skipped,
       // and size < minSize means we cannot draw the text.
       var debug = false;
-      var fontSize = settings.weightFactor(weight);
+      var fontSize = lastFontSize ? lastFontSize - lastFontSize * 0.3 : settings.weightFactor(weight);
       if (fontSize <= settings.minSize) {
         return false;
       }
@@ -1094,7 +1094,7 @@ if (!window.clearImmediate) {
        calculate it's size and determine it's position, and actually
        put it on the canvas. */
     var putWord = function putWord(item, i) {
-      var word, weight, attributes, highlight, index = i;
+      var word, weight, attributes, highlight, index = i, lastFontSize;
       if (Array.isArray(item)) {
         word = item[0];
         weight = item[1];
@@ -1105,95 +1105,113 @@ if (!window.clearImmediate) {
         attributes = item.attributes;
         highlight = item.highlight
       }
-      var rotateDeg = getRotateDeg();
 
-      // get info needed to put the text onto the canvas
-      var info = getTextInfo(word, weight, rotateDeg);
-      
-      // not getting the info means we shouldn't be drawing this one.
-      if (!info) {
-        return false;
-      }
+      var tryToPutWord = function(defaultFontSize) {
+        var rotateDeg = getRotateDeg();
+        // get info needed to put the text onto the canvas
+        var info = getTextInfo(word, weight, rotateDeg, defaultFontSize);
 
-      if (exceedTime()) {
-        return false;
-      }
-
-      // If drawOutOfBound is set to false,
-      // skip the loop if we have already know the bounding box of
-      // word is larger than the canvas.
-      if (!settings.drawOutOfBound) {
-        var bounds = info.bounds;
-        if ((bounds[1] - bounds[3] + 1) > ngx ||
-          (bounds[2] - bounds[0] + 1) > ngy) {
+        lastFontSize = info.fontSize
+        // not getting the info means we shouldn't be drawing this one.
+        if (!info) {
           return false;
         }
-      }
 
-      // Determine the position to put the text by
-      // start looking for the nearest points
-      var r = maxRadius + 1;
-      var tryToPutWordAtPoint = function(gxy, index) {
-        var gx = Math.floor(gxy[0] - info.gw / 2);
-        var gy = Math.floor(gxy[1] - info.gh / 2);
-        var gw = info.gw;
-        var gh = info.gh;
-        // If we cannot fit the text at this position, return false
-        // and go to the next position.
-        if (!canFitText(gx, gy, gw, gh, info.occupied)) {
+        if (exceedTime()) {
           return false;
         }
-        var wordItem = {
-          gx: gx,
-          gy: gy,
-          info: info,
-          word: word,
-          weight: weight,
-          distance: (maxRadius - r),
-          theta: gxy[2],
-          attributes: attributes,
-          item: item,
-          i: index,
-          highlight: highlight,
-          rotateDeg: rotateDeg
-        }
-        _this.words.push(wordItem)
-        // // Actually put the text on the canvas
-        // drawText(gx, gy, info, word, weight,
-        //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
-        // // Mark the spaces on the grid as filled
-        // updateGrid(gx, gy, gw, gh, info, item);
-        // Return true so some() will stop and also return true.
-        return wordItem;
-      };
-      while (r--) {
-        var points = getPointsAtRadius(maxRadius - r);
-        if (settings.shuffle) {
-          points = [].concat(points);
-          shuffleArray(points);
-        }
 
-        // Try to fit the words by looking at each point.
-        // array.some() will stop and return true
-        // when putWordAtPoint() returns true.
-        // If all the points returns false, array.some() returns false.
-        var drawn;
-        for (var i = 0; i < points.length; i++) {
-          var drawnItem = tryToPutWordAtPoint(points[i], index)
-          if (drawnItem) {
-            drawn = drawnItem
-            break
+        // If drawOutOfBound is set to false,
+        // skip the loop if we have already know the bounding box of
+        // word is larger than the canvas.
+        if (!settings.drawOutOfBound) {
+          var bounds = info.bounds;
+          if ((bounds[1] - bounds[3] + 1) > ngx ||
+            (bounds[2] - bounds[0] + 1) > ngy) {
+            return false;
           }
         }
-        
-        // var drawn = points.some(tryToPutWordAtPoint);
-        if (drawn) {
-          // leave putWord() and return true
-          return drawn;
+
+        // Determine the position to put the text by
+        // start looking for the nearest points
+        var r = maxRadius + 1;
+        var tryToPutWordAtPoint = function(gxy, index) {
+          var gx = Math.floor(gxy[0] - info.gw / 2);
+          var gy = Math.floor(gxy[1] - info.gh / 2);
+          var gw = info.gw;
+          var gh = info.gh;
+          // If we cannot fit the text at this position, return false
+          // and go to the next position.
+          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
+            return false;
+          }
+          var wordItem = {
+            gx: gx,
+            gy: gy,
+            info: info,
+            word: word,
+            weight: weight,
+            distance: (maxRadius - r),
+            theta: gxy[2],
+            attributes: attributes,
+            item: item,
+            i: index,
+            highlight: highlight,
+            rotateDeg: rotateDeg
+          }
+          _this.words.push(wordItem)
+          // // Actually put the text on the canvas
+          // drawText(gx, gy, info, word, weight,
+          //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
+          // // Mark the spaces on the grid as filled
+          // updateGrid(gx, gy, gw, gh, info, item);
+          // Return true so some() will stop and also return true.
+          return wordItem;
+        };
+        while (r--) {
+          var points = getPointsAtRadius(maxRadius - r);
+          if (settings.shuffle) {
+            points = [].concat(points);
+            shuffleArray(points);
+          }
+
+          // Try to fit the words by looking at each point.
+          // array.some() will stop and return true
+          // when putWordAtPoint() returns true.
+          // If all the points returns false, array.some() returns false.
+          var drawn;
+          for (var i = 0; i < points.length; i++) {
+            var drawnItem = tryToPutWordAtPoint(points[i], index)
+            if (drawnItem) {
+              drawn = drawnItem
+              break
+            }
+          }
+          
+          // var drawn = points.some(tryToPutWordAtPoint);
+          if (drawn) {
+            // leave putWord() and return true
+            return drawn;
+          }
         }
+        // we tried all distances but text won't fit, return false
+        return false;
       }
-      // we tried all distances but text won't fit, return false
-      return false;
+      
+      var wordItem = tryToPutWord()
+      if (wordItem) {
+        return wordItem
+      } else if (options.autoFontSize) {
+        while(!wordItem) {
+          wordItem = tryToPutWord(lastFontSize)
+          if (wordItem) {
+            options.maxFontSize = lastFontSize
+            return wordItem
+          }
+        }
+      } else {
+        return false
+      }
     };
 
     /* Send DOM event to all elements. Will stop sending event and return

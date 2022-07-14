@@ -76,6 +76,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 - `shadowBlur`：新增配置项，文字阴影模糊量
 - `shadowColor`：新增配置项，文字阴影颜色
 - `maskImage`： 新增配置项，白底黑形状图片，上传后词云可渲染图片形状
+- `autoFontSize`：新增配置项，类型为`Boolean`，默认关闭，当开启时，`maxFontSize` 和 `minFontSize`配置项将失效，自动计算单词字体大小，突出高频，且保证词频一定渲染成功，配和`maskImage`同时使用时，效果最佳
 - `maxFontSize`：新增配置项，最大字号
 - `minFontSize`：新增配置项，最小字号
 - `cursorWhenHover`：新增配置项，鼠标经过时样式 'default' | 'pointer'
@@ -111,6 +112,12 @@ wordcloud.dispatchAction({
 
 
 ## 重要版本更新
+
+### v2.0.4
+基于wordcloud2的词云，在对任意图形的支持方式很简单，根据图片形状做一个类似遮罩，算法不会在超出边界的地方渲染单词，这样会造成一个问题，当高频词词频近似，而我们又需要设置较大的maxFontSize，以此来达到突出高频词的目的达到更好的视觉效果时，有很大概率会漏掉某些权重大的单词，这不符合数据可视化的常用场景，我们正好有这个场景，既需要突出高频词，又需要确保单词必须保证渲染，因此这次版本升级简单解决一下这个问题。
+
+- 美化词云，更换单词大小计算算法
+- 新增 `autoFontSize` 配置项 ，详细解析见文档
 
 ### v2.0.0
 - 字符大小逻辑重构

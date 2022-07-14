@@ -139,8 +139,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    _createClass(B2wordcloud, [{
 	        key: '_init',
 	        value: function _init() {
+	            this._sortList(this._options);
 	            this._initContainer();
 	            this._setOptions();
+	        }
+	    }, {
+	        key: '_sortList',
+	        value: function _sortList(options) {
+	            options.list = options.list.sort(function (a, b) {
+	                return b[1] - a[1];
+	            });
+	        }
+	    }, {
+	        key: '_setDefaultFontSize',
+	        value: function _setDefaultFontSize(options) {
+	            if (options.autoFontSize) {
+	                options.maxFontSize = this._wrapper.clientHeight;
+	                options.minFontSize = 10;
+	            } else {
+	                options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36;
+	
+	                options.minFontSize = typeof options.minFontSize === 'number' ? options.minFontSize : 10;
+	            }
 	        }
 	    }, {
 	        key: '_initContainer',
@@ -202,6 +222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        value: function _setOptions() {
 	            var _this = this;
 	
+	            this._setDefaultFontSize(this._options);
 	            !this._options.weightFactor && this._fixWeightFactor(this._options);
 	            if (this._options.tooltip.show) {
 	                this._initTooltip();
@@ -293,57 +314,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_fixWeightFactor',
 	        value: function _fixWeightFactor(option) {
-	            option.maxFontSize = typeof option.maxFontSize === 'number' ? option.maxFontSize : 36;
-	            option.minFontSize = typeof option.minFontSize === 'number' ? option.minFontSize : 6;
 	            if (option.list && option.list.length > 0) {
-	                var min = Number(option.list[0][1]);
-	                var max = 0;
-	                for (var i = 0, len = option.list.length; i < len; i++) {
-	                    var item = Number(option.list[i][1]);
-	                    if (min > item) {
-	                        min = item;
-	                    }
-	                    if (max < item) {
-	                        max = item;
-	                    }
-	                }
-	
-	                // //用y=ax^r+b公式确定字体大小
-	                // if(max > min){
-	                //     var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
-	                //     var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
-	                //     var b = option.maxFontSize - a * Math.pow(max, r)
-	                //     option.weightFactor = function (size) {
-	                //         return Math.ceil(a * Math.pow(size, r) + b)
-	                //     }
-	                // }else{
-	                //     option.weightFactor = function (size) {
-	                //         return option.minFontSize
-	                //     }
-	                // }
-	
-	                //使用linerMap计算词云大小
+	                var min = option.list[option.list.length - 1][1];
+	                var max = option.list[0][1];
+	                //用y=ax^r+b公式确定字体大小
 	                if (max > min) {
-	                    option.weightFactor = function (val) {
-	                        var subDomain = max - min;
-	                        var subRange = option.maxFontSize - option.minFontSize;
-	                        if (subDomain === 0) {
-	                            return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
-	                        }
-	                        if (val === min) {
-	                            return option.minFontSize;
-	                        }
-	
-	                        if (val === max) {
-	                            return option.maxFontSize;
-	                        }
-	                        return (val - min) / subDomain * subRange + option.minFontSize;
+	                    option.weightFactor = function (size) {
+	                        var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
+	                        var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
+	                        var b = option.maxFontSize - a * Math.pow(max, r);
+	                        return Math.ceil(a * Math.pow(size, r) + b);
 	                    };
 	                } else {
 	                    option.weightFactor = function (size) {
-	                        return option.minFontSize;
+	                        return option.maxFontSize;
 	                    };
 	                }
+	
+	                ////使用linerMap计算词云大小
+	                // if (max > min) {
+	                //     option.weightFactor = function(val) {
+	                //         var subDomain = max - min
+	                //         var subRange = option.maxFontSize - option.minFontSize
+	                //         if (subDomain === 0) {
+	                //             return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+	                //         }
+	                //         if (val === min) {
+	                //             return option.minFontSize;
+	                //         }
+	
+	                //         if (val === max) {
+	                //             return option.maxFontSize;
+	                //         }
+	                //         return (val - min) / subDomain * subRange + option.minFontSize;
+	                //     }
+	                // } else {
+	                //     option.weightFactor = function(size) {
+	                //         return option.maxFontSize
+	                //     }
+	                // }
 	            }
 	        }
 	    }, {
@@ -885,12 +894,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	      };
 	
-	      var getTextInfo = function getTextInfo(word, weight, rotateDeg) {
+	      var getTextInfo = function getTextInfo(word, weight, rotateDeg, lastFontSize) {
 	        // calculate the acutal font size
 	        // fontSize === 0 means weightFactor function wants the text skipped,
 	        // and size < minSize means we cannot draw the text.
 	        var debug = false;
-	        var fontSize = settings.weightFactor(weight);
+	        var fontSize = lastFontSize ? lastFontSize - lastFontSize * 0.3 : settings.weightFactor(weight);
 	        if (fontSize <= settings.minSize) {
 	          return false;
 	        }
@@ -1419,7 +1428,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	            weight,
 	            attributes,
 	            highlight,
-	            index = i;
+	            index = i,
+	            lastFontSize;
 	        if (Array.isArray(item)) {
 	          word = item[0];
 	          weight = item[1];
@@ -1430,94 +1440,112 @@ return /******/ (function(modules) { // webpackBootstrap
 	          attributes = item.attributes;
 	          highlight = item.highlight;
 	        }
-	        var rotateDeg = getRotateDeg();
 	
-	        // get info needed to put the text onto the canvas
-	        var info = getTextInfo(word, weight, rotateDeg);
+	        var tryToPutWord = function tryToPutWord(defaultFontSize) {
+	          var rotateDeg = getRotateDeg();
+	          // get info needed to put the text onto the canvas
+	          var info = getTextInfo(word, weight, rotateDeg, defaultFontSize);
 	
-	        // not getting the info means we shouldn't be drawing this one.
-	        if (!info) {
-	          return false;
-	        }
-	
-	        if (exceedTime()) {
-	          return false;
-	        }
-	
-	        // If drawOutOfBound is set to false,
-	        // skip the loop if we have already know the bounding box of
-	        // word is larger than the canvas.
-	        if (!settings.drawOutOfBound) {
-	          var bounds = info.bounds;
-	          if (bounds[1] - bounds[3] + 1 > ngx || bounds[2] - bounds[0] + 1 > ngy) {
+	          lastFontSize = info.fontSize;
+	          // not getting the info means we shouldn't be drawing this one.
+	          if (!info) {
 	            return false;
 	          }
-	        }
 	
-	        // Determine the position to put the text by
-	        // start looking for the nearest points
-	        var r = maxRadius + 1;
-	        var tryToPutWordAtPoint = function tryToPutWordAtPoint(gxy, index) {
-	          var gx = Math.floor(gxy[0] - info.gw / 2);
-	          var gy = Math.floor(gxy[1] - info.gh / 2);
-	          var gw = info.gw;
-	          var gh = info.gh;
-	          // If we cannot fit the text at this position, return false
-	          // and go to the next position.
-	          if (!canFitText(gx, gy, gw, gh, info.occupied)) {
+	          if (exceedTime()) {
 	            return false;
 	          }
-	          var wordItem = {
-	            gx: gx,
-	            gy: gy,
-	            info: info,
-	            word: word,
-	            weight: weight,
-	            distance: maxRadius - r,
-	            theta: gxy[2],
-	            attributes: attributes,
-	            item: item,
-	            i: index,
-	            highlight: highlight,
-	            rotateDeg: rotateDeg
-	          };
-	          _this.words.push(wordItem);
-	          // // Actually put the text on the canvas
-	          // drawText(gx, gy, info, word, weight,
-	          //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
-	          // // Mark the spaces on the grid as filled
-	          // updateGrid(gx, gy, gw, gh, info, item);
-	          // Return true so some() will stop and also return true.
-	          return wordItem;
-	        };
-	        while (r--) {
-	          var points = getPointsAtRadius(maxRadius - r);
-	          if (settings.shuffle) {
-	            points = [].concat(points);
-	            shuffleArray(points);
-	          }
 	
-	          // Try to fit the words by looking at each point.
-	          // array.some() will stop and return true
-	          // when putWordAtPoint() returns true.
-	          // If all the points returns false, array.some() returns false.
-	          var drawn;
-	          for (var i = 0; i < points.length; i++) {
-	            var drawnItem = tryToPutWordAtPoint(points[i], index);
-	            if (drawnItem) {
-	              drawn = drawnItem;
-	              break;
+	          // If drawOutOfBound is set to false,
+	          // skip the loop if we have already know the bounding box of
+	          // word is larger than the canvas.
+	          if (!settings.drawOutOfBound) {
+	            var bounds = info.bounds;
+	            if (bounds[1] - bounds[3] + 1 > ngx || bounds[2] - bounds[0] + 1 > ngy) {
+	              return false;
 	            }
 	          }
 	
-	          // var drawn = points.some(tryToPutWordAtPoint);
-	          if (drawn) {
-	            // leave putWord() and return true
-	            return drawn;
+	          // Determine the position to put the text by
+	          // start looking for the nearest points
+	          var r = maxRadius + 1;
+	          var tryToPutWordAtPoint = function tryToPutWordAtPoint(gxy, index) {
+	            var gx = Math.floor(gxy[0] - info.gw / 2);
+	            var gy = Math.floor(gxy[1] - info.gh / 2);
+	            var gw = info.gw;
+	            var gh = info.gh;
+	            // If we cannot fit the text at this position, return false
+	            // and go to the next position.
+	            if (!canFitText(gx, gy, gw, gh, info.occupied)) {
+	              return false;
+	            }
+	            var wordItem = {
+	              gx: gx,
+	              gy: gy,
+	              info: info,
+	              word: word,
+	              weight: weight,
+	              distance: maxRadius - r,
+	              theta: gxy[2],
+	              attributes: attributes,
+	              item: item,
+	              i: index,
+	              highlight: highlight,
+	              rotateDeg: rotateDeg
+	            };
+	            _this.words.push(wordItem);
+	            // // Actually put the text on the canvas
+	            // drawText(gx, gy, info, word, weight,
+	            //          (maxRadius - r), gxy[2], rotateDeg, attributes, i);
+	            // // Mark the spaces on the grid as filled
+	            // updateGrid(gx, gy, gw, gh, info, item);
+	            // Return true so some() will stop and also return true.
+	            return wordItem;
+	          };
+	          while (r--) {
+	            var points = getPointsAtRadius(maxRadius - r);
+	            if (settings.shuffle) {
+	              points = [].concat(points);
+	              shuffleArray(points);
+	            }
+	
+	            // Try to fit the words by looking at each point.
+	            // array.some() will stop and return true
+	            // when putWordAtPoint() returns true.
+	            // If all the points returns false, array.some() returns false.
+	            var drawn;
+	            for (var i = 0; i < points.length; i++) {
+	              var drawnItem = tryToPutWordAtPoint(points[i], index);
+	              if (drawnItem) {
+	                drawn = drawnItem;
+	                break;
+	              }
+	            }
+	
+	            // var drawn = points.some(tryToPutWordAtPoint);
+	            if (drawn) {
+	              // leave putWord() and return true
+	              return drawn;
+	            }
 	          }
+	          // we tried all distances but text won't fit, return false
+	          return false;
+	        };
+	
+	        var wordItem = tryToPutWord();
+	        if (wordItem) {
+	          return wordItem;
+	        } else if (options.autoFontSize) {
+	          while (!wordItem) {
+	            wordItem = tryToPutWord(lastFontSize);
+	            if (wordItem) {
+	              options.maxFontSize = lastFontSize;
+	              return wordItem;
+	            }
+	          }
+	        } else {
+	          return false;
 	        }
-	        // we tried all distances but text won't fit, return false
-	        return false;
 	      };
 	
 	      /* Send DOM event to all elements. Will stop sending event and return

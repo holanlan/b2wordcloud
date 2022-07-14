@@ -73,8 +73,25 @@ export class B2wordcloud {
         this._init()
     }
     _init() {
+        this._sortList(this._options)
         this._initContainer()
         this._setOptions()
+    }
+    _sortList(options) {
+        options.list = options.list.sort((a, b) => {
+            return b[1] - a[1]
+        })
+    }
+    _setDefaultFontSize(options) {
+        if (options.autoFontSize) {
+            options.maxFontSize = this._wrapper.clientHeight
+            options.minFontSize = 10
+        } else {
+            options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36
+        
+            options.minFontSize = typeof options.minFontSize === 'number' ? options.minFontSize : 10
+        }
+        
     }
     _initContainer() {
         this._maskCanvas = document.createElement('canvas')
@@ -123,6 +140,7 @@ export class B2wordcloud {
         target.style.height = height + 'px'
     }
     _setOptions() {
+        this._setDefaultFontSize(this._options)
         !this._options.weightFactor && this._fixWeightFactor(this._options)
         if (this._options.tooltip.show) {
             this._initTooltip()
@@ -203,9 +221,6 @@ export class B2wordcloud {
             this._render()
         }
     }
-
-
-
     _render(isResize = false) {
         if (this._maskImg) {
             updateCanvasMask(this._shapeCanvas, this._maskCanvas)
@@ -213,57 +228,45 @@ export class B2wordcloud {
         this._wordcloud2 = new WordCloud(this._options.renderer === 'canvas' ? this._container : [this._tempCanvas, this._container], this._options, this._maskCanvas, isResize)
     }
     _fixWeightFactor(option) {
-        option.maxFontSize = typeof option.maxFontSize === 'number' ? option.maxFontSize : 36
-        option.minFontSize = typeof option.minFontSize === 'number' ? option.minFontSize : 6
         if(option.list && option.list.length > 0){
-            var min = Number(option.list[0][1])
-            var max = 0
-            for(var i = 0, len = option.list.length; i < len; i++ ) {
-                var item = Number(option.list[i][1])
-                if(min > item) {
-                    min = item
+            var min = option.list[option.list.length - 1 ][1]
+            var max = option.list[0][1]
+            //用y=ax^r+b公式确定字体大小
+            if(max > min) {
+                option.weightFactor = function (size) {
+                    var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
+                    var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
+                    var b = option.maxFontSize - a * Math.pow(max, r)
+                    return Math.ceil(a * Math.pow(size, r) + b)
                 }
-                if(max < item) {
-                    max = item
+            }else{
+                option.weightFactor = function (size) {
+                    return option.maxFontSize
                 }
             }
-            
-            // //用y=ax^r+b公式确定字体大小
-            // if(max > min){
-            //     var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
-            //     var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
-            //     var b = option.maxFontSize - a * Math.pow(max, r)
-            //     option.weightFactor = function (size) {
-            //         return Math.ceil(a * Math.pow(size, r) + b)
+
+            ////使用linerMap计算词云大小
+            // if (max > min) {
+            //     option.weightFactor = function(val) {
+            //         var subDomain = max - min
+            //         var subRange = option.maxFontSize - option.minFontSize
+            //         if (subDomain === 0) {
+            //             return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+            //         }
+            //         if (val === min) {
+            //             return option.minFontSize;
+            //         }
+                
+            //         if (val === max) {
+            //             return option.maxFontSize;
+            //         }
+            //         return (val - min) / subDomain * subRange + option.minFontSize;
             //     }
-            // }else{
-            //     option.weightFactor = function (size) {
-            //         return option.minFontSize
+            // } else {
+            //     option.weightFactor = function(size) {
+            //         return option.maxFontSize
             //     }
             // }
-
-            //使用linerMap计算词云大小
-            if (max > min) {
-                option.weightFactor = function(val) {
-                    var subDomain = max - min
-                    var subRange = option.maxFontSize - option.minFontSize
-                    if (subDomain === 0) {
-                        return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
-                    }
-                    if (val === min) {
-                        return option.minFontSize;
-                    }
-                
-                    if (val === max) {
-                        return option.maxFontSize;
-                    }
-                    return (val - min) / subDomain * subRange + option.minFontSize;
-                }
-            } else {
-                option.weightFactor = function(size) {
-                    return option.minFontSize
-                }
-            }
         }
     }
     resize() {
