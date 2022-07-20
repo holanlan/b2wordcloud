@@ -72,7 +72,7 @@ export class B2wordcloud {
         this._maskImg = null
         this._init()
         // 缓存item hover回调参数（主要用于mouseout时判断是否还在item上避免错误隐藏tooltip）
-        this.cacheHoverParams = {
+        this._cacheHoverParams = {
             item: null,
             dimension: null,
             event: null
@@ -156,15 +156,15 @@ export class B2wordcloud {
             this._options.mouseout = (...args) => {
                 if (tempOut) tempOut()
                 // hover item为空时才隐藏tooltip
-                if (!this.cacheHoverParams.item) {
+                if (!this._cacheHoverParams.item) {
                   this._tooltip.style.display = 'none'
                 }
             }
             
             this._options.hover = (item, dimension, event) => {
-                this.cacheHoverParams.item = item
-                this.cacheHoverParams.dimension = dimension
-                this.cacheHoverParams.event = event
+                this._cacheHoverParams.item = item
+                this._cacheHoverParams.dimension = dimension
+                this._cacheHoverParams.event = event
                 if (tempHover) tempHover(item, dimension, event)
                 if (item) {
                     let html = item[0] + ': ' + item[1]
