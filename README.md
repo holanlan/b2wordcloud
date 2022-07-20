@@ -85,7 +85,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 
 ### methods
 
-- resize()
+<!-- - resize()
 
 当容器大小变化时，可调用此方法重新绘制
 
@@ -94,7 +94,7 @@ e.g:
 var wordCloud = new B2wordCloud(element, options)
 
 wordcloud.resize()
-```
+``` -->
 
 - dispatchAction
 
@@ -120,6 +120,7 @@ wordcloud.dispatchAction({
 
 - 美化词云，更换单词大小计算算法
 - 新增 `autoFontSize` 配置项 ，详细解析见文档
+- 废弃 `resize` 内置方法，如需重新渲染适配，请自行实现
 
 ### v2.0.0
 - 字符大小逻辑重构

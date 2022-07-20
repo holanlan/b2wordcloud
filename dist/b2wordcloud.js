@@ -355,19 +355,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	                // }
 	            }
 	        }
-	    }, {
-	        key: 'resize',
-	        value: function resize() {
-	            if (this._options.renderer === 'canvas') {
-	                this._setCanvasSize();
-	            } else if (this._options.renderer === 'div') {
-	                this._container.textContent = '';
-	            }
-	            if (this._maskCanvas) {
-	                this._setCanvasSize(this._maskCanvas);
-	            }
-	            this._render();
-	        }
+	        // resize() {
+	        //     if (this._options.renderer === 'canvas') {
+	        //         this._setCanvasSize()
+	        //     } else if (this._options.renderer === 'div') {
+	        //         this._container.textContent = ''
+	        //     }
+	        //     if (this._maskCanvas) {
+	        //         this._setCanvasSize(this._maskCanvas)
+	        //     }
+	        //     this._render()
+	        // }
 	        /**
 	         * 
 	         * @param {object} params 事件参数
