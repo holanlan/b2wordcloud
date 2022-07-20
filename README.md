@@ -12,7 +12,7 @@
 
 简单线上演示 [DEMO](https://holanlan.github.io/b2wordcloud/)
 
-渐变+阴影+形状+点击高亮演示 [DEMO](https://holanlan.github.io/b2wordcloud/shape.html)
+渐变+阴影+形状+自定义tooltip位置+点击高亮演示 [DEMO](https://holanlan.github.io/b2wordcloud/shape.html)
 
 ## Installtion
 - 通过script引入
@@ -67,6 +67,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
   - `formatter`：自定义tooltip格式，返回html，回调参数为当前所选的词
   - `className`： 自定义tooltip的样式名
   - `background`：自定义tooltip背景色，默认为'rgba(0,0,0,0.8)'
+  - `position`: 自定义tooltip位置，默认为跟随鼠标，回调函数(item: Array, dimension: Object, event: Object) => Object<{left, top}>
 - `color`：基于原有的color配置项做了修改，原color配置项支持字符串与函数，此处不变，可兼容原wordcloud2配置，新增特性为支持数组，当color为数组时，将按数组顺序取色，其中数组分以下两种情况
   - 当数组元素为颜色字符串时，直接使用渲染
   - 当数组元素为数组时，将使用数组元素渲染渐变色，v1.0.7版本更新，支持横向渐变或纵向渐变
