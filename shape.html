@@ -375,6 +375,14 @@
             tooltip: {
                 formatter: function(item) {
                     return '<div>' + item[0] + '</div>' + '<div>' + item[1] + '</div>'
+                },
+                position: function(item, dimension, event) {
+                  const targetRect = event.target.getBoundingClientRect()
+                  const { x, y, w, h} = dimension
+                  return {
+                    left: x + w / 2 + targetRect.left,
+                    top: y + h / 2 + targetRect.top
+                  }
                 }
             },
             color: [
