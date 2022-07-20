@@ -71,6 +71,12 @@ export class B2wordcloud {
         this._tempCanvas = null
         this._maskImg = null
         this._init()
+        // 缓存item hover回调参数（主要用于mouseout时判断是否还在item上避免错误隐藏tooltip）
+        this.cacheHoverParams = {
+            item: null,
+            dimension: null,
+            event: null
+        }
     }
     _init() {
         this._sortList(this._options)
@@ -147,11 +153,18 @@ export class B2wordcloud {
             let tooltipWidth, tooltipHeight, offsetY, offsetX
             const tempHover = this._options.hover
             const tempOut = this._options.mouseout
-            this._options.mouseout = () => {
+            this._options.mouseout = (...args) => {
                 if (tempOut) tempOut()
-                this._tooltip.style.display = 'none'
+                // hover item为空时才隐藏tooltip
+                if (!this.cacheHoverParams.item) {
+                  this._tooltip.style.display = 'none'
+                }
             }
+            
             this._options.hover = (item, dimension, event) => {
+                this.cacheHoverParams.item = item
+                this.cacheHoverParams.dimension = dimension
+                this.cacheHoverParams.event = event
                 if (tempHover) tempHover(item, dimension, event)
                 if (item) {
                     let html = item[0] + ': ' + item[1]
@@ -165,9 +178,18 @@ export class B2wordcloud {
 
                     offsetY = tooltipHeight + 15
                     offsetX = tooltipWidth/2 + 5
+                    let top = event.pageY - offsetY
+                    let left = event.pageX - offsetX
+                    if (typeof this._options.tooltip.position === 'function') {
+                        const newPosition = this._options.tooltip.position(item, dimension, event)
+                        if (newPosition) {
+                            top = newPosition.top
+                            left = newPosition.left
+                        }
+                    }
                     this._tooltip.style.position = 'absolute'
-                    this._tooltip.style.top = event.pageY - offsetY + 'px'
-                    this._tooltip.style.left = event.pageX - offsetX + 'px'
+                    this._tooltip.style.top = top + 'px'
+                    this._tooltip.style.left = left + 'px'
                     this._tooltip.innerHTML = html
                 } else {
                     this._tooltip.style.display = 'none'
