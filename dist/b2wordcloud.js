@@ -134,6 +134,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._tempCanvas = null;
 	        this._maskImg = null;
 	        this._init();
+	        // 缓存item hover回调参数（主要用于mouseout时判断是否还在item上避免错误隐藏tooltip）
+	        this._cacheHoverParams = {
+	            item: null,
+	            dimension: null,
+	            event: null
+	        };
 	    }
 	
 	    _createClass(B2wordcloud, [{
@@ -153,8 +159,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_setDefaultFontSize',
 	        value: function _setDefaultFontSize(options) {
+	            // 根据最大词频来自动计算最大的词大小
+	            var maxFontLength = options.list[0][0].length;
+	            var minFontLength = 4;
+	            // 如果最大词频的词太短，可能导致过大，因此以最少5个字来做计算
+	            if (maxFontLength < minFontLength) {
+	                maxFontLength = minFontLength;
+	            }
 	            if (options.autoFontSize) {
-	                options.maxFontSize = this._wrapper.clientHeight;
+	                options.maxFontSize = this._wrapper.clientWidth / maxFontLength;
 	                options.minFontSize = 10;
 	            } else {
 	                options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36;
@@ -234,9 +247,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var tempOut = this._options.mouseout;
 	                this._options.mouseout = function () {
 	                    if (tempOut) tempOut();
-	                    _this._tooltip.style.display = 'none';
+	                    // hover item为空时才隐藏tooltip
+	                    if (!_this._cacheHoverParams.item) {
+	                        _this._tooltip.style.display = 'none';
+	                    }
 	                };
+	
 	                this._options.hover = function (item, dimension, event) {
+	                    _this._cacheHoverParams.item = item;
+	                    _this._cacheHoverParams.dimension = dimension;
+	                    _this._cacheHoverParams.event = event;
 	                    if (tempHover) tempHover(item, dimension, event);
 	                    if (item) {
 	                        var html = item[0] + ': ' + item[1];
@@ -250,9 +270,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	                        offsetY = tooltipHeight + 15;
 	                        offsetX = tooltipWidth / 2 + 5;
+	                        var top = event.pageY - offsetY;
+	                        var left = event.pageX - offsetX;
+	                        if (typeof _this._options.tooltip.position === 'function') {
+	                            var newPosition = _this._options.tooltip.position(item, dimension, event);
+	                            if (newPosition) {
+	                                top = newPosition.top;
+	                                left = newPosition.left;
+	                            }
+	                        }
 	                        _this._tooltip.style.position = 'absolute';
-	                        _this._tooltip.style.top = event.pageY - offsetY + 'px';
-	                        _this._tooltip.style.left = event.pageX - offsetX + 'px';
+	                        _this._tooltip.style.top = top + 'px';
+	                        _this._tooltip.style.left = left + 'px';
 	                        _this._tooltip.innerHTML = html;
 	                    } else {
 	                        _this._tooltip.style.display = 'none';
@@ -318,41 +347,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var min = option.list[option.list.length - 1][1];
 	                var max = option.list[0][1];
 	                //用y=ax^r+b公式确定字体大小
+	                // if(max > min) {
+	                //     option.weightFactor = function (size) {
+	                //         var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
+	                //         var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
+	                //         var b = option.maxFontSize - a * Math.pow(max, r)
+	                //         return Math.ceil(a * Math.pow(size, r) + b)
+	                //     }
+	                // }else{
+	                //     option.weightFactor = function (size) {
+	                //         return option.maxFontSize
+	                //     }
+	                // }
+	
+	                //使用linerMap计算词云大小
 	                if (max > min) {
-	                    option.weightFactor = function (size) {
-	                        var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
-	                        var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
-	                        var b = option.maxFontSize - a * Math.pow(max, r);
-	                        return Math.ceil(a * Math.pow(size, r) + b);
+	                    option.weightFactor = function (val) {
+	                        var subDomain = max - min;
+	                        var subRange = option.maxFontSize - option.minFontSize;
+	                        if (subDomain === 0) {
+	                            return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+	                        }
+	                        if (val === min) {
+	                            return option.minFontSize;
+	                        }
+	
+	                        if (val === max) {
+	                            return option.maxFontSize;
+	                        }
+	                        return (val - min) / subDomain * subRange + option.minFontSize;
 	                    };
 	                } else {
 	                    option.weightFactor = function (size) {
 	                        return option.maxFontSize;
 	                    };
 	                }
-	
-	                ////使用linerMap计算词云大小
-	                // if (max > min) {
-	                //     option.weightFactor = function(val) {
-	                //         var subDomain = max - min
-	                //         var subRange = option.maxFontSize - option.minFontSize
-	                //         if (subDomain === 0) {
-	                //             return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
-	                //         }
-	                //         if (val === min) {
-	                //             return option.minFontSize;
-	                //         }
-	
-	                //         if (val === max) {
-	                //             return option.maxFontSize;
-	                //         }
-	                //         return (val - min) / subDomain * subRange + option.minFontSize;
-	                //     }
-	                // } else {
-	                //     option.weightFactor = function(size) {
-	                //         return option.maxFontSize
-	                //     }
-	                // }
 	            }
 	        }
 	        // resize() {
