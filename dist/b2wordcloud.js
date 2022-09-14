@@ -168,7 +168,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            if (options.autoFontSize) {
 	                options.maxFontSize = this._wrapper.clientWidth / maxFontLength;
-	                options.minFontSize = 10;
+	                options.minFontSize = typeof options.minFontSize === 'number' ? options.minFontSize : 10;
 	            } else {
 	                options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36;
 	
@@ -1563,11 +1563,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (wordItem) {
 	          return wordItem;
 	        } else if (options.autoFontSize) {
-	          while (!wordItem) {
-	            wordItem = tryToPutWord(lastFontSize);
-	            if (wordItem) {
-	              options.maxFontSize = lastFontSize;
-	              return wordItem;
+	          if (lastFontSize <= options.minFontSize) {
+	            return false;
+	          } else {
+	            while (!wordItem) {
+	              wordItem = tryToPutWord(lastFontSize);
+	              if (wordItem) {
+	                options.maxFontSize = lastFontSize;
+	                return wordItem;
+	              }
 	            }
 	          }
 	        } else {

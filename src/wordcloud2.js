@@ -1202,13 +1202,18 @@ if (!window.clearImmediate) {
       if (wordItem) {
         return wordItem
       } else if (options.autoFontSize) {
-        while(!wordItem) {
-          wordItem = tryToPutWord(lastFontSize)
-          if (wordItem) {
-            options.maxFontSize = lastFontSize
-            return wordItem
+        if (lastFontSize <= options.minFontSize) {
+          return false
+        } else {
+          while(!wordItem) {
+            wordItem = tryToPutWord(lastFontSize)
+            if (wordItem) {
+              options.maxFontSize = lastFontSize
+              return wordItem
+            }
           }
         }
+        
       } else {
         return false
       }
