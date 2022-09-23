@@ -122,6 +122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._tooltip = null;
 	        this._options = deepMerge({
 	            renderer: 'canvas',
+	            effect: 'equal',
 	            tooltip: {
 	                show: true,
 	                formatter: null
@@ -159,15 +160,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: '_setDefaultFontSize',
 	        value: function _setDefaultFontSize(options) {
-	            // 根据最大词频来自动计算最大的词大小
-	            var maxFontLength = options.list[0][0].length;
-	            var minFontLength = 4;
-	            // 如果最大词频的词太短，可能导致过大，因此以最少5个字来做计算
-	            if (maxFontLength < minFontLength) {
-	                maxFontLength = minFontLength;
-	            }
 	            if (options.autoFontSize) {
-	                options.maxFontSize = this._wrapper.clientWidth / maxFontLength;
+	                options.maxFontSize = this._wrapper.clientWidth;
 	                options.minFontSize = typeof options.minFontSize === 'number' ? options.minFontSize : 10;
 	            } else {
 	                options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36;
@@ -347,41 +341,57 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var min = option.list[option.list.length - 1][1];
 	                var max = option.list[0][1];
 	                //用y=ax^r+b公式确定字体大小
-	                // if(max > min) {
-	                //     option.weightFactor = function (size) {
-	                //         var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
-	                //         var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
-	                //         var b = option.maxFontSize - a * Math.pow(max, r)
-	                //         return Math.ceil(a * Math.pow(size, r) + b)
-	                //     }
-	                // }else{
-	                //     option.weightFactor = function (size) {
-	                //         return option.maxFontSize
-	                //     }
-	                // }
-	
-	                //使用linerMap计算词云大小
 	                if (max > min) {
-	                    option.weightFactor = function (val) {
-	                        var subDomain = max - min;
-	                        var subRange = option.maxFontSize - option.minFontSize;
-	                        if (subDomain === 0) {
-	                            return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
-	                        }
-	                        if (val === min) {
-	                            return option.minFontSize;
-	                        }
+	                    option.weightFactor = function (size) {
+	                        if (option.effect === 'linerMap') {
+	                            var subDomain = max - min;
+	                            var subRange = option.maxFontSize - option.minFontSize;
+	                            if (subDomain === 0) {
+	                                return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+	                            }
+	                            if (size === min) {
+	                                return option.minFontSize;
+	                            }
 	
-	                        if (val === max) {
-	                            return option.maxFontSize;
+	                            if (size === max) {
+	                                return option.maxFontSize;
+	                            }
+	                            return (size - min) / subDomain * subRange + option.minFontSize;
+	                        } else {
+	                            var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
+	                            var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
+	                            var b = option.maxFontSize - a * Math.pow(max, r);
+	                            return Math.ceil(a * Math.pow(size, r) + b);
 	                        }
-	                        return (val - min) / subDomain * subRange + option.minFontSize;
 	                    };
 	                } else {
 	                    option.weightFactor = function (size) {
 	                        return option.maxFontSize;
 	                    };
 	                }
+	
+	                //使用linerMap计算词云大小
+	                // if (max > min) {
+	                //     option.weightFactor = function(val) {
+	                //         var subDomain = max - min
+	                //         var subRange = option.maxFontSize - option.minFontSize
+	                //         if (subDomain === 0) {
+	                //             return subRange === 0 ? option.minFontSize : (option.minFontSize + option.maxFontSize) / 2;
+	                //         }
+	                //         if (val === min) {
+	                //             return option.minFontSize;
+	                //         }
+	
+	                //         if (val === max) {
+	                //             return option.maxFontSize;
+	                //         }
+	                //         return (val - min) / subDomain * subRange + option.minFontSize;
+	                //     }
+	                // } else {
+	                //     option.weightFactor = function(size) {
+	                //         return option.maxFontSize
+	                //     }
+	                // }
 	            }
 	        }
 	        // resize() {
@@ -612,7 +622,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      var settings = {
 	        list: [],
 	        fontFamily: '"Trebuchet MS", "Heiti TC", "微軟正黑體", ' + '"Arial Unicode MS", "Droid Fallback Sans", sans-serif',
-	        fontWeight: 'normal',
+	        fontWeight: 'bold',
 	        color: 'random-dark',
 	        minSize: 0, // 0 to disable
 	        weightFactor: 1,
@@ -1130,21 +1140,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	        updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
 	      };
 	
-	      var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor) {
+	      var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor, rotate) {
 	        ctx.beginPath(0);
 	        ctx.save();
-	        ctx.moveTo(x + r, y);
-	        ctx.lineTo(x + width - r, y);
-	        ctx.arcTo(x + width, y, x + width, y + r, r);
-	        ctx.lineTo(x + width, y + height - r);
-	        ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
-	        ctx.lineTo(x + r, y + height);
-	        ctx.arcTo(x, y + height, x, y + height - r, r);
-	        ctx.lineTo(x, y + r);
-	        ctx.arcTo(x, y, x + r, y, r);
-	        ctx.closePath();
-	        ctx.fillStyle = bgColor; //若是给定了值就用给定的值否则给予默认值  
-	        ctx.fill();
+	        // ctx.moveTo(x+r,y);
+	        // ctx.lineTo(x+width-r,y);
+	        // ctx.arcTo(x+width,y,x+width,y+r,r);
+	        // ctx.lineTo(x+width,y+height-r);
+	        // ctx.arcTo(x+width,y+height,x+width-r,y+height,r);
+	        // ctx.lineTo(x+r,y+height);
+	        // ctx.arcTo(x,y+height,x,y+height-r,r);
+	        // ctx.lineTo(x,y+r);
+	        // ctx.arcTo(x,y,x+r,y,r);
+	        // ctx.closePath();
+	        // ctx.fillStyle = bgColor; //若是给定了值就用给定的值否则给予默认值  
+	        // ctx.fill();
+	
+	
+	        ctx.rotate(rotate);
+	        ctx.fillStyle = bgColor;
+	        ctx.fillRect(x, y, width, height);
+	        ctx.rect(x, y, width, height);
 	        ctx.lineWidth = '1';
 	        ctx.strokeStyle = borderColor;
 	        ctx.stroke();
@@ -1268,7 +1284,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	                  bggradient.addColorStop(i / (itemColor.length - 2), colorRgba(itemColor[itemColor.length - 2 - i], 0.2));
 	                }
 	              }
-	              roundRect(ctx, info.fillTextOffsetX * mu - 2 * 1 / mu, info.fillTextOffsetY * mu - 2 * 1 / mu, ctx.measureText(word).width + 4 * 1 / mu, fontSize + 4 * 1 / mu, 4 * 1 / mu, isItemColorArray ? bggradient : colorRgba(itemColor ? itemColor : color, 0.2), isItemColorArray ? itemColor[0] : itemColor ? itemColor : color);
+	              roundRect(ctx, info.fillTextOffsetX * mu - 2 * 1 / mu, info.fillTextOffsetY * mu - 2 * 1 / mu, ctx.measureText(word).width + 4 * 1 / mu, fontSize + 4 * 1 / mu, 4 * 1 / mu, isItemColorArray ? bggradient : colorRgba(itemColor ? itemColor : color, 0.2), isItemColorArray ? itemColor[0] : itemColor ? itemColor : color, -rotateDeg);
 	            }
 	            ctx.shadowColor = options.shadowColor;
 	            ctx.shadowOffsetX = options.shadowOffsetX;

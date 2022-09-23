@@ -196,7 +196,7 @@ if (!window.clearImmediate) {
       list: [],
       fontFamily: '"Trebuchet MS", "Heiti TC", "微軟正黑體", ' +
                   '"Arial Unicode MS", "Droid Fallback Sans", sans-serif',
-      fontWeight: 'normal',
+      fontWeight: 'bold',
       color: 'random-dark',
       minSize: 0, // 0 to disable
       weightFactor: 1,
@@ -747,24 +747,30 @@ if (!window.clearImmediate) {
       updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
     }
 
-    var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor){
+    var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor, rotate){
       ctx.beginPath(0);
       ctx.save()
-      ctx.moveTo(x+r,y);
-      ctx.lineTo(x+width-r,y);
-      ctx.arcTo(x+width,y,x+width,y+r,r);
-      ctx.lineTo(x+width,y+height-r);
-      ctx.arcTo(x+width,y+height,x+width-r,y+height,r);
-      ctx.lineTo(x+r,y+height);
-      ctx.arcTo(x,y+height,x,y+height-r,r);
-      ctx.lineTo(x,y+r);
-      ctx.arcTo(x,y,x+r,y,r);
-      ctx.closePath();
-      ctx.fillStyle = bgColor; //若是给定了值就用给定的值否则给予默认值  
-      ctx.fill();
+      // ctx.moveTo(x+r,y);
+      // ctx.lineTo(x+width-r,y);
+      // ctx.arcTo(x+width,y,x+width,y+r,r);
+      // ctx.lineTo(x+width,y+height-r);
+      // ctx.arcTo(x+width,y+height,x+width-r,y+height,r);
+      // ctx.lineTo(x+r,y+height);
+      // ctx.arcTo(x,y+height,x,y+height-r,r);
+      // ctx.lineTo(x,y+r);
+      // ctx.arcTo(x,y,x+r,y,r);
+      // ctx.closePath();
+      // ctx.fillStyle = bgColor; //若是给定了值就用给定的值否则给予默认值  
+      // ctx.fill();
+
+      
+      ctx.rotate(rotate)
+      ctx.fillStyle = bgColor
+      ctx.fillRect(x, y, width, height)
+      ctx.rect(x, y, width, height)
       ctx.lineWidth='1'
-      ctx.strokeStyle=borderColor;
-      ctx.stroke();
+      ctx.strokeStyle=borderColor
+      ctx.stroke()
       ctx.restore()
     }
 
@@ -903,6 +909,7 @@ if (!window.clearImmediate) {
               4*1/mu, 
               isItemColorArray ? bggradient : colorRgba(itemColor ? itemColor : color, 0.2),
               isItemColorArray ? itemColor[0] : itemColor ? itemColor : color,
+              - rotateDeg
             )  
           }
           ctx.shadowColor = options.shadowColor

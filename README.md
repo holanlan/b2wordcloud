@@ -59,6 +59,7 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 
 ### options
 - `weightFactor`：用函数来计算每个字的大小
+- `effect`：词云效果，默认为"equal"，可选择"linerMap"，主要表现为词频差异性效果不一样
 - `list`：基于原有配置项做了扩展，原有格式为[key,value],新增是否高亮选项，如['foo', 12332, true]，数组第三项则表示默认是否高亮
 - `renderer`：新增配置项**渲染模式**，默认为"canvas"，可选择"div"
   - e.g. renderer: 'canvas'
