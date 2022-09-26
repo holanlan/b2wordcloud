@@ -1432,6 +1432,9 @@ if (!window.clearImmediate) {
         i++;
         timer = loopingFunction(loop, settings.wait);
       }, settings.wait);
+      _this.stop = function() {
+        window.clearImmediate(timer)
+      }
 
       if (canvasEl) {
         var canvasCtx = canvasEl.getContext('2d')

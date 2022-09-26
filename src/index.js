@@ -337,6 +337,12 @@ export class B2wordcloud {
         }
         
     }
+    // stop instance renderring
+    stop() {
+        if (this._wordcloud2 && typeof this._wordcloud2.stop === 'function') {
+            this._wordcloud2.stop()
+        }
+    }
 }
 
 

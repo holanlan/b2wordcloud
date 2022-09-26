@@ -86,7 +86,16 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 - `cursorWhenHover`：新增配置项，鼠标经过时样式 'default' | 'pointer'
 
 ### methods
+- stop()
 
+手动停止词云渲染
+
+e.g: 
+```javascript
+var wordCloud = new B2wordCloud(element, options)
+
+wordcloud.stop()
+```
 <!-- - resize()
 
 当容器大小变化时，可调用此方法重新绘制
