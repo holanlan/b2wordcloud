@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100px" height="75px" viewBox="0 0 100 75" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>base-ellipse</title>
+    <g id="控件" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M100,37.5 C100,58.2125 77.6125,75 50,75 C22.3875,75 0,58.2125 0,37.5 C0,16.7875 22.3875,0 50,0 C77.6125,0 100,16.7875 100,37.5" id="base-ellipse" fill="#000000"></path>
+    </g>
+</svg>
