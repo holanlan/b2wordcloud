@@ -239,11 +239,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    offsetX = void 0;
 	                var tempHover = this._options.hover;
 	                var tempOut = this._options.mouseout;
-	                this._options.mouseout = function () {
-	                    if (tempOut) tempOut();
+	                this._options.mouseout = function (evt) {
+	                    if (tempOut) tempOut(evt);
 	                    // hover item为空时才隐藏tooltip
 	                    if (!_this._cacheHoverParams.item) {
 	                        _this._tooltip.style.display = 'none';
+	                    }
+	                    var el = evt.toElement;
+	                    if (el && el === _this._tooltip) {
+	                        el.addEventListener('mouseleave', function mouseleave() {
+	                            el.style.display = 'none';
+	                            el.removeEventListener('mouseleave', mouseleave);
+	                        });
 	                    }
 	                };
 	
@@ -843,8 +850,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        return infoGrid[x][y];
 	      };
-	      var wordcloudout = function wordcloudout() {
-	        settings.mouseout();
+	      var wordcloudout = function wordcloudout(evt) {
+	        settings.mouseout(evt);
 	      };
 	      var wordcloudhover = function wordcloudhover(evt) {
 	        var info = getInfoGridFromMouseTouchEvent(evt);
