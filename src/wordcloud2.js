@@ -432,8 +432,8 @@ if (!window.clearImmediate) {
 
       return infoGrid[x][y];
     };
-    var wordcloudout = function() {
-      settings.mouseout()
+    var wordcloudout = function(evt) {
+      settings.mouseout(evt);
     }
     var wordcloudhover = function wordcloudhover(evt) {
       var info = getInfoGridFromMouseTouchEvent(evt);

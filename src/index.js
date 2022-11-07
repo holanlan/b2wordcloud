@@ -154,11 +154,18 @@ export class B2wordcloud {
             let tooltipWidth, tooltipHeight, offsetY, offsetX
             const tempHover = this._options.hover
             const tempOut = this._options.mouseout
-            this._options.mouseout = (...args) => {
-                if (tempOut) tempOut()
+            this._options.mouseout = (evt) => {
+                if (tempOut) tempOut(evt)
                 // hover item为空时才隐藏tooltip
                 if (!this._cacheHoverParams.item) {
-                  this._tooltip.style.display = 'none'
+                    this._tooltip.style.display = 'none'
+                }
+                const el = evt.toElement
+                if (el && el === this._tooltip) {
+                    el.addEventListener('mouseleave', function mouseleave() {
+                        el.style.display = 'none'
+                        el.removeEventListener('mouseleave', mouseleave)
+                    })
                 }
             }
             
