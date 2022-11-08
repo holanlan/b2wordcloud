@@ -91,7 +91,7 @@ export class B2wordcloud {
     }
     _setDefaultFontSize(options) {
         if (options.autoFontSize) {
-            options.maxFontSize = this._wrapper.clientWidth
+            options.maxFontSize = 400
             options.minFontSize = typeof options.minFontSize === 'number' ? options.minFontSize : 10
         } else {
             options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36
@@ -261,7 +261,7 @@ export class B2wordcloud {
         if(option.list && option.list.length > 0){
             var min = option.list[option.list.length - 1 ][1]
             var max = option.list[0][1]
-            //用y=ax^r+b公式确定字体大小
+            
             if(max > min) {
                 option.weightFactor = function (size) {
                     if (option.effect === 'linerMap') {
@@ -279,7 +279,8 @@ export class B2wordcloud {
                         }
                         return (size - min) / subDomain * subRange + option.minFontSize;
                     } else {
-                        var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10
+                        //用y=ax^r+b公式确定字体大小
+                        var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / (option.topN || 5)
                         var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r))
                         var b = option.maxFontSize - a * Math.pow(max, r)
                         return Math.ceil(a * Math.pow(size, r) + b)

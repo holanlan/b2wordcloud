@@ -230,7 +230,11 @@ if (!window.clearImmediate) {
       hover: null,
       click: null,
       cursorWhenHover: 'pointer',
-      mouseout: null
+      mouseout: null,
+
+      topN: 5,
+      autoFontSize: false,
+      autoRatio: 0.8
     };
     var _this = this
     _this.words = []
@@ -533,7 +537,10 @@ if (!window.clearImmediate) {
       // fontSize === 0 means weightFactor function wants the text skipped,
       // and size < minSize means we cannot draw the text.
       var debug = false;
-      var fontSize = lastFontSize ? lastFontSize - lastFontSize * 0.3 : settings.weightFactor(weight);
+      
+      var fontSize = lastFontSize ? lastFontSize * settings.autoRatio : settings.weightFactor(weight);
+
+
       if (fontSize <= settings.minSize) {
         return false;
       }
@@ -735,16 +742,20 @@ if (!window.clearImmediate) {
       return true;
     };
 
-    _this.drawItem = function(item, index) {
+    _this.drawItem = function(item, isDraw) {
       if (!item) {
         return
       }     
-      // Actually put the text on the canvas
-      drawText(item.gx, item.gy, item.info, item.word, item.weight,
-        item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
-      // Mark the spaces on the grid as filled
-
-      updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
+      if (isDraw) {
+        // Actually put the text on the canvas
+        drawText(item.gx, item.gy, item.info, item.word, item.weight,
+          item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
+      } else {
+        // Mark the spaces on the grid as filled
+        updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
+      }
+      
+      
     }
 
     var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor, rotate){
@@ -1208,7 +1219,7 @@ if (!window.clearImmediate) {
       var wordItem = tryToPutWord()
       if (wordItem) {
         return wordItem
-      } else if (options.autoFontSize) {
+      } else if (options.autoFontSize && index >= settings.topN) {
         if (lastFontSize <= options.minFontSize) {
           return false
         } else {
@@ -1220,7 +1231,6 @@ if (!window.clearImmediate) {
             }
           }
         }
-        
       } else {
         return false
       }
@@ -1276,7 +1286,7 @@ if (!window.clearImmediate) {
          if not, update the grid to the current canvas state */
       grid = [];
 
-      var gx, gy, i;
+      var gx, gy, i, cacheGrid;
       elements.forEach(function(el) {
         el.style.backgroundColor = settings.backgroundColor
         if (el.getContext) {
@@ -1344,6 +1354,7 @@ if (!window.clearImmediate) {
 
         imageData = bctx = bgPixel = undefined;
       }
+      cacheGrid = JSON.parse(JSON.stringify(grid))
       // fill the infoGrid with empty state if we need it
       if (settings.hover || settings.click) {
         interactive = true;
@@ -1418,6 +1429,22 @@ if (!window.clearImmediate) {
         }
         escapeTime = (new Date()).getTime();
         var drawn = putWord(settings.list[i], i);
+        if (i === settings.topN) {
+          for (let topN = 0; topN <= settings.topN; topN++) {
+            _this.drawItem(_this.words[topN], true)
+          }
+        } else if (i > settings.topN) {
+          _this.drawItem(drawn, true)
+        }
+
+        if (i < settings.topN && !drawn) {
+          options.maxFontSize = options.maxFontSize * settings.autoRatio
+          _this.words = []
+          grid = JSON.parse(JSON.stringify(cacheGrid))
+          i = 0
+        } else {
+          i++;
+        }
         _this.drawItem(drawn);
         var canceled = !sendEvent('wordclouddrawn', true, {
           item: settings.list[i], drawn: drawn && true });
@@ -1429,7 +1456,6 @@ if (!window.clearImmediate) {
           removeEventListener('wordcloudstart', anotherWordCloudStart);
           return;
         }
-        i++;
         timer = loopingFunction(loop, settings.wait);
       }, settings.wait);
       _this.stop = function() {
@@ -1466,7 +1492,7 @@ if (!window.clearImmediate) {
         if (item.i === index) {
           item.highlight = true
         }
-        _this.drawItem(item)
+        _this.drawItem(item, true)
       })
     })
   }
@@ -1482,7 +1508,7 @@ if (!window.clearImmediate) {
         if (item.i === index) {
           item.highlight = false
         }
-        _this.drawItem(item)
+        _this.drawItem(item, true)
       })
     })
   }
