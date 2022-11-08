@@ -365,11 +365,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            }
 	                            return (size - min) / subDomain * subRange + option.minFontSize;
 	                        } else {
-	                            // 虚位以待
-	
-	
 	                            //用y=ax^r+b公式确定字体大小
-	                            var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
+	                            var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / (option.topN || 5);
 	                            var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
 	                            var b = option.maxFontSize - a * Math.pow(max, r);
 	                            return Math.ceil(a * Math.pow(size, r) + b);
@@ -1612,7 +1609,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	          return false;
 	        }
-	        // return false
 	      };
 	
 	      /* Send DOM event to all elements. Will stop sending event and return
@@ -1795,7 +1791,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	        addEventListener('wordcloudstart', anotherWordCloudStart);
 	        var timer = loopingFunction(function loop() {
-	
 	          if (i >= settings.list.length) {
 	            stoppingFunction(timer);
 	            sendEvent('wordcloudstop', false);

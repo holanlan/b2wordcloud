@@ -1234,7 +1234,6 @@ if (!window.clearImmediate) {
       } else {
         return false
       }
-      // return false
     };
 
     /* Send DOM event to all elements. Will stop sending event and return
@@ -1421,7 +1420,6 @@ if (!window.clearImmediate) {
 
       addEventListener('wordcloudstart', anotherWordCloudStart);
       var timer = loopingFunction(function loop() {
-        
         if (i >= settings.list.length) {
           stoppingFunction(timer);
           sendEvent('wordcloudstop', false);
@@ -1460,9 +1458,6 @@ if (!window.clearImmediate) {
         }
         timer = loopingFunction(loop, settings.wait);
       }, settings.wait);
-      
-      
-
 
       if (canvasEl) {
         var canvasCtx = canvasEl.getContext('2d')
