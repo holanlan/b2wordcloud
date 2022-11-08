@@ -537,10 +537,7 @@ if (!window.clearImmediate) {
       // fontSize === 0 means weightFactor function wants the text skipped,
       // and size < minSize means we cannot draw the text.
       var debug = false;
-      
-      var fontSize = lastFontSize ? lastFontSize * settings.autoRatio : settings.weightFactor(weight);
-
-
+      var fontSize = lastFontSize ? lastFontSize - lastFontSize * (1 - settings.autoRatio) : settings.weightFactor(weight);
       if (fontSize <= settings.minSize) {
         return false;
       }
@@ -1219,7 +1216,8 @@ if (!window.clearImmediate) {
       var wordItem = tryToPutWord()
       if (wordItem) {
         return wordItem
-      } else if (options.autoFontSize && index >= settings.topN) {
+      } else if (options.autoFontSize && index > settings.topN) {
+        console.log(index, wordItem)
         if (lastFontSize <= options.minFontSize) {
           return false
         } else {
@@ -1426,28 +1424,26 @@ if (!window.clearImmediate) {
           stoppingFunction(timer);
           sendEvent('wordcloudstop', false);
           removeEventListener('wordcloudstart', anotherWordCloudStart);
-
+          _this.words.forEach(item => {
+            _this.drawItem(item, true)
+          })
           return;
         }
         escapeTime = (new Date()).getTime();
         var drawn = putWord(settings.list[i], i);
-        if (i === settings.topN) {
-          for (let topN = 0; topN <= settings.topN; topN++) {
-            _this.drawItem(_this.words[topN], true)
-          }
-        } else if (i > settings.topN) {
-          _this.drawItem(drawn, true)
-        }
-
-        if (i < settings.topN && !drawn) {
+        
+        // 前十词需要额外计算，如果其中一个不能渲染，则需要从头计算
+        if (i <= settings.topN && !drawn) {
           options.maxFontSize = options.maxFontSize * settings.autoRatio
           _this.words = []
           grid = JSON.parse(JSON.stringify(cacheGrid))
           i = 0
+          console.log(options.maxFontSize, i)
         } else {
           i++;
         }
         _this.drawItem(drawn);
+        
         var canceled = !sendEvent('wordclouddrawn', true, {
           item: settings.list[i], drawn: drawn && true });
         if (exceedTime() || canceled) {
