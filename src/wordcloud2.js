@@ -1421,6 +1421,12 @@ if (!window.clearImmediate) {
       addEventListener('wordcloudstart', anotherWordCloudStart);
       var timer = loopingFunction(function loop() {
         if (i >= settings.list.length) {
+          /* 词量少于topN时需要遍历渲染一次 */
+          if (_this.words.length <= settings.topN) {
+            for (let topN = 0; topN <= settings.topN; topN++) {
+              _this.drawItem(_this.words[topN], true)
+            }
+          }
           stoppingFunction(timer);
           sendEvent('wordcloudstop', false);
           removeEventListener('wordcloudstart', anotherWordCloudStart);
