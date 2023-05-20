@@ -86,7 +86,16 @@ var wordCloud = new B2wordcloud(document.getElementById("chart"), {
 - `cursorWhenHover`：新增配置项，鼠标经过时样式 'default' | 'pointer'
 
 ### methods
+- stop()
 
+手动停止词云渲染
+
+e.g: 
+```javascript
+var wordCloud = new B2wordCloud(element, options)
+
+wordcloud.stop()
+```
 <!-- - resize()
 
 当容器大小变化时，可调用此方法重新绘制
@@ -116,6 +125,9 @@ wordcloud.dispatchAction({
 
 
 ## 重要版本更新
+
+### v2.0.5
+自动计算字号效果优化，避免第一个词过大的情况
 
 ### v2.0.4
 基于wordcloud2的词云，在对任意图形的支持方式很简单，根据图片形状做一个类似遮罩，算法不会在超出边界的地方渲染单词，这样会造成一个问题，当高频词词频近似，而我们又需要设置较大的maxFontSize，以此来达到突出高频词的目的达到更好的视觉效果时，有很大概率会漏掉某些权重大的单词，这不符合数据可视化的常用场景，我们正好有这个场景，既需要突出高频词，又需要确保单词必须保证渲染，因此这次版本升级简单解决一下这个问题。

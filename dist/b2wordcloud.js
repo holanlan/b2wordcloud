@@ -161,7 +161,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        key: '_setDefaultFontSize',
 	        value: function _setDefaultFontSize(options) {
 	            if (options.autoFontSize) {
-	                options.maxFontSize = this._wrapper.clientWidth;
+	                options.maxFontSize = 400;
 	                options.minFontSize = typeof options.minFontSize === 'number' ? options.minFontSize : 10;
 	            } else {
 	                options.maxFontSize = typeof options.maxFontSize === 'number' ? options.maxFontSize : 36;
@@ -347,7 +347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            if (option.list && option.list.length > 0) {
 	                var min = option.list[option.list.length - 1][1];
 	                var max = option.list[0][1];
-	                //用y=ax^r+b公式确定字体大小
+	
 	                if (max > min) {
 	                    option.weightFactor = function (size) {
 	                        if (option.effect === 'linerMap') {
@@ -365,7 +365,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                            }
 	                            return (size - min) / subDomain * subRange + option.minFontSize;
 	                        } else {
-	                            var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / 10;
+	                            //用y=ax^r+b公式确定字体大小
+	                            var r = typeof option.fontSizeFactor === 'number' ? option.fontSizeFactor : 1 / (option.topN || 5);
 	                            var a = (option.maxFontSize - option.minFontSize) / (Math.pow(max, r) - Math.pow(min, r));
 	                            var b = option.maxFontSize - a * Math.pow(max, r);
 	                            return Math.ceil(a * Math.pow(size, r) + b);
@@ -663,7 +664,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	        hover: null,
 	        click: null,
 	        cursorWhenHover: 'pointer',
-	        mouseout: null
+	        mouseout: null,
+	
+	        topN: 5,
+	        autoFontSize: false,
+	        autoRatio: 0.8
 	      };
 	      var _this = this;
 	      _this.words = [];
@@ -943,7 +948,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // fontSize === 0 means weightFactor function wants the text skipped,
 	        // and size < minSize means we cannot draw the text.
 	        var debug = false;
-	        var fontSize = lastFontSize ? lastFontSize - lastFontSize * 0.3 : settings.weightFactor(weight);
+	
+	        var fontSize = lastFontSize ? lastFontSize * settings.autoRatio : settings.weightFactor(weight);
+	
 	        if (fontSize <= settings.minSize) {
 	          return false;
 	        }
@@ -1136,15 +1143,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return true;
 	      };
 	
-	      _this.drawItem = function (item, index) {
+	      _this.drawItem = function (item, isDraw) {
 	        if (!item) {
 	          return;
 	        }
-	        // Actually put the text on the canvas
-	        drawText(item.gx, item.gy, item.info, item.word, item.weight, item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
-	        // Mark the spaces on the grid as filled
-	
-	        updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
+	        if (isDraw) {
+	          // Actually put the text on the canvas
+	          drawText(item.gx, item.gy, item.info, item.word, item.weight, item.distance, item.theta, item.rotateDeg, item.attributes, item.i, item.highlight);
+	        } else {
+	          // Mark the spaces on the grid as filled
+	          updateGrid(item.gx, item.gy, item.gw, item.gh, item.info, item.item, item.i);
+	        }
 	      };
 	
 	      var roundRect = function roundRect(ctx, x, y, width, height, r, bgColor, borderColor, rotate) {
@@ -1585,7 +1594,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var wordItem = tryToPutWord();
 	        if (wordItem) {
 	          return wordItem;
-	        } else if (options.autoFontSize) {
+	        } else if (options.autoFontSize && index >= settings.topN) {
 	          if (lastFontSize <= options.minFontSize) {
 	            return false;
 	          } else {
@@ -1650,7 +1659,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	           if not, update the grid to the current canvas state */
 	        grid = [];
 	
-	        var gx, gy, i;
+	        var gx, gy, i, cacheGrid;
 	        elements.forEach(function (el) {
 	          el.style.backgroundColor = settings.backgroundColor;
 	          if (el.getContext) {
@@ -1716,6 +1725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	          imageData = bctx = bgPixel = undefined;
 	        }
+	        cacheGrid = JSON.parse(JSON.stringify(grid));
 	        // fill the infoGrid with empty state if we need it
 	        if (settings.hover || settings.click) {
 	          interactive = true;
@@ -1790,6 +1800,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	          }
 	          escapeTime = new Date().getTime();
 	          var drawn = putWord(settings.list[i], i);
+	          if (i === settings.topN) {
+	            for (var topN = 0; topN <= settings.topN; topN++) {
+	              _this.drawItem(_this.words[topN], true);
+	            }
+	          } else if (i > settings.topN) {
+	            _this.drawItem(drawn, true);
+	          }
+	
+	          if (i < settings.topN && !drawn) {
+	            options.maxFontSize = options.maxFontSize * settings.autoRatio;
+	            _this.words = [];
+	            grid = JSON.parse(JSON.stringify(cacheGrid));
+	            i = 0;
+	          } else {
+	            i++;
+	          }
 	          _this.drawItem(drawn);
 	          var canceled = !sendEvent('wordclouddrawn', true, {
 	            item: settings.list[i], drawn: drawn && true });
@@ -1801,7 +1827,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            removeEventListener('wordcloudstart', anotherWordCloudStart);
 	            return;
 	          }
-	          i++;
 	          timer = loopingFunction(loop, settings.wait);
 	        }, settings.wait);
 	
@@ -1835,7 +1860,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (item.i === index) {
 	            item.highlight = true;
 	          }
-	          _this.drawItem(item);
+	          _this.drawItem(item, true);
 	        });
 	      });
 	    };
@@ -1851,7 +1876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	          if (item.i === index) {
 	            item.highlight = false;
 	          }
-	          _this.drawItem(item);
+	          _this.drawItem(item, true);
 	        });
 	      });
 	    };
